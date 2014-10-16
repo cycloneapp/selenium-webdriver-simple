@@ -1,0 +1,17 @@
+{
+    "name": "selenium-webdriver-simple",
+    "main": "index.js",
+    "dependencies": {
+        "selenium-webdriver": "*",
+        "glob": "*",
+        "nexpect": "*"
+    },
+    "devDependencies": {
+        "coffee-script": "*",
+        "cake": "*",
+        "flour": "*"
+    },
+    "scripts": {
+        "prepublish": "./node_modules/.bin/coffee --compile --no-header --output ./ ./src/"
+    }
+}

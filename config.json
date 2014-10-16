@@ -1,0 +1,13 @@
+{
+    "selenium": {
+        "path": "./vendor",
+        "port": "",
+        "useEnv": true,
+        "latestVersion": "2.43.1"
+    },
+    "browser": "chrome",
+    "pkgVersions": {
+        "selenium-server-standalone": "2.43.1",
+        "chromedriver": "2.9"
+    }
+}
