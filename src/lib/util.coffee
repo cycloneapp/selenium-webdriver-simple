@@ -16,16 +16,22 @@ exports.extend = extend = (obj, mixin) ->
 exports.include = include = (klass, mixin) ->
     extend klass.prototype, mixin
 
-exports.merge = (options, overrides) ->
+exports.merge = merge = (options, overrides) ->
     extend (extend {}, options), overrides
 
 exports.last = last = (array, back) -> array[array.length - (back or 0) - 1]
 
-exports.first = first = (array) -> array[0]
+exports.first = first = (array) ->
+    context = array ? this
+    context[0]
 
 Array::first   ?= first
 Array::last    ?= last
 Array::compact ?= compact
+
+exports.string = merge {},
+    bold: (t) ->
+        "\u0002#{t}\u000F"
 
 exports.require_relative = (fi) ->
     _from = __dirname ? process.cwd()

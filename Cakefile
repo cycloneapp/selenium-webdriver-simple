@@ -40,14 +40,21 @@ task 'compile', 'Compile CoffeeScripts', (opts) ->
 option '-f', '--file [FILE]', 'file to compile (default: "src/*.coffee")'
 task 'show', 'Compile and print CoffeeScript  file', (opts) ->
     files = opts.file ? util.sync('./src/**').filter (_f) -> _f.indexOf('.coffee') isnt -1
-    console.log files
-    compile files, (o) ->
-        console.log o
+    #if files
+    #console.log '=============================='
+    #compile files, (o) ->
+    #    console.log '=============================='
+    #    console.log "\u0002#{o.file.name}\u000F"
+    #    console.log o.output
+    #    console.log '=============================='
 
 
 task 'install', 'Install selenium-standalone-server', (opts) ->
-    selenium = require './lib/selenium'
-    selenium.locator.locate()
+    selenium = require('./lib/selenium').Selenium
+    
+    selenium.runServer()
+    console.log selenium.isRunning()
+    selenium.stopServer()
 
 
 
