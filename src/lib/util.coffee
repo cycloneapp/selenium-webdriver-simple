@@ -29,9 +29,17 @@ Array::first   ?= first
 Array::last    ?= last
 Array::compact ?= compact
 
-exports.string = merge {},
-    bold: (t) ->
-        "\u0002#{t}\u000F"
+exports.error = (m) ->
+    console.error "\u001b[1m\u001b[31mError!\u001b[39m\u001b[22m \u001b[1m#{m}\u001b[22m"
+
+exports.info = (m) ->
+    console.info "#{m}"
+
+exports.warn = (m) ->
+    console.warn "#{m}"
+
+exports.succ = (m) ->
+    console.log "\u001b[1m\u001b[32m#{m}\u001b[39m\u001b[22m"
 
 exports.require_relative = (fi) ->
     _from = __dirname ? process.cwd()

@@ -4,7 +4,8 @@ class Browser
     @verbose = no
     constructor: (selenium) ->
         @server = selenium.startServer().getServer()
-
+        unless @t?
+            log 'test'
         @client = new selenium.webdriver.Builder()
                         .usingServer @server.address()
                         .withCapabilities @_determineCapabilities()
@@ -70,3 +71,4 @@ class Browser
         @browser = _browser
         @browser
 
+exports = Browser
