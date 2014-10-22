@@ -4,12 +4,15 @@
     "dependencies": {
         "selenium-webdriver": "*",
         "glob": "*",
-        "nexpect": "*"
+        "nexpect": "*",
+        "common-errors": "*",
+        "dateformat": "*"
     },
     "devDependencies": {
         "coffee-script": "*",
         "cake": "*",
-        "flour": "*"
+        "flour": "*",
+        "comment-macros": "*"
     },
     "scripts": {
         "prepublish": "./node_modules/.bin/coffee --compile --no-header --output ./ ./src/"

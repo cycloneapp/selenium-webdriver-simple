@@ -1,8 +1,12 @@
-selenium = require('./selenium').Selenium
+$selenium = require('./selenium')
 
 class Browser
     @verbose = no
-    constructor: (selenium) ->
+    constructor: (@config) ->
+        {browser, selenium, @verbose, @timeout} = @config\
+
+        $selenium.setup selenium
+        
         @server = selenium.startServer().getServer()
         unless @t?
             log 'test'
@@ -14,6 +18,9 @@ class Browser
     walk: (url) ->
         @client.get url
         @
+
+    go: ->
+        @walk arguments
 
     wait: (cb, time=1000) ->
         @client.wait(cb, time)
@@ -35,14 +42,30 @@ class Browser
             ele.sendKeys value
         @
 
-
-    find: (sel)  ->
-        @client.findElement sel
+    ###
+    @todo instance methods
+    ###
+    url: ->
         @
 
     title: (cb) ->
         @client.getTitle().then(cb)
         @
+
+    ###
+    end of instance methods
+    ###
+
+    sleep: ->
+        @
+
+    screenshot: ->
+
+    find: (sel)  ->
+        @client.findElement sel
+        @
+
+
 
     reset: ->
         options = new selenium.webdriver.WebDriver.Options(@client)

@@ -19,6 +19,15 @@ util.extend Selenium,
     config: ->
         cfg?.selenium
 
+    setup: ({@path, @host, @port}) ->
+        unless @path?
+            @path = @locate()
+        unless @port?
+            @port = @portprober.findFreePort()
+
+        @configured = true
+
+
 ###
 Extensions
 ###
@@ -34,22 +43,26 @@ run/stop server
 ###
 util.extend Selenium,
     running: no
-    startServer: ->
-        @server = new Selenium.server @locate(),
-            port: @portprober.findFreePort()
-        @running = yes
+    start: ({path, host, port}) ->
+        if not @configured
+            @setup()
+
+        @server = new Selenium.server @path,
+            port: @port
         @
 
-    getServer: ->
+    getInstance: ->
         @server
 
-    stopServer: ->
-        if @running
+    stop: ->
+        if @isRunning()
             @server.stop()
         @
 
     isRunning: ->
-        @running
+        if @server?
+            return @server.isRunning()
+        false
 
 
 

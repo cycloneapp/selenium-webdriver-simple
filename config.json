@@ -6,6 +6,8 @@
         "latestVersion": "2.43.1"
     },
     "browser": "chrome",
+    "verbose": true,
+    "timeout": 1000,
     "pkgVersions": {
         "selenium-server-standalone": "2.43.1",
         "chromedriver": "2.9"
