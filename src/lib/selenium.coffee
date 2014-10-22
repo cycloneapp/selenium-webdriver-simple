@@ -26,6 +26,7 @@ util.extend Selenium,
             @port = @portprober.findFreePort()
 
         @configured = true
+        @
 
 
 ###

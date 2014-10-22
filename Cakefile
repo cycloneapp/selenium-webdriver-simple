@@ -142,11 +142,15 @@ task 'ttt', 'ttt', (o) ->
     #    console.log '=============================='
 
 
-task 'testrun', 'Install selenium-standalone-server', (opts) ->
-    selenium = require('./lib/selenium').Selenium
+task 'testrun', 'Ensure Selenium server can start', (opts) ->
+    selenium = require('./lib/selenium')
+    msg      = "Selenium server is" 
     
-    selenium.runServer()
-    console.log selenium.isRunning()
+    selenium.run()
+    if selenium.isRunning()
+        util.succ "#{msg} running"
+    else
+        util.error "#{msg} not running"
     selenium.stopServer()
 
 

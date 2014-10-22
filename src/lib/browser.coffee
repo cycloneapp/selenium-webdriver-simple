@@ -1,16 +1,23 @@
-$selenium = require('./selenium')
+[$selenium, $err] = [
+    require './selenium'
+    require 'common-errors'
+]
 
 class Browser
     @verbose = no
     constructor: (@config) ->
-        {browser, selenium, @verbose, @timeout} = @config\
+        {browser, selenium, @verbose, @timeout} = @config
 
-        $selenium.setup selenium
+        $selenium
+            .setup selenium
+            .start()
         
-        @server = selenium.startServer().getServer()
-        unless @t?
-            log 'test'
-        @client = new selenium.webdriver.Builder()
+        unless $selenium.isRunning()
+            throw new $err.Error 'Selenium server is not running'
+            
+        @server = $selenium.getInstance()
+
+        @client = new $selenium.webdriver.Builder()
                         .usingServer @server.address()
                         .withCapabilities @_determineCapabilities()
                         .build()

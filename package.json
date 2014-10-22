@@ -15,6 +15,6 @@
         "comment-macros": "*"
     },
     "scripts": {
-        "prepublish": "./node_modules/.bin/coffee --compile --no-header --output ./ ./src/"
+        "prepublish": "./node_modules/.bin/coffee --compile --no-header --output ./ ./src/ || echo 'Compilation failed, check your sources for errors'"
     }
 }
