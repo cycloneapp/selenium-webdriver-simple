@@ -129,7 +129,7 @@ class Browser
         if @client?
             @client.quit()
         if @server? and @server.isRunning()
-            @server.stopServer()
+            @server.stop()
 
     setVerbose: (val) ->
         @verbose = val
