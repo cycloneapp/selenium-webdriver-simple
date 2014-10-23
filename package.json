@@ -1,6 +1,7 @@
 {
     "name": "selenium-webdriver-simple",
     "main": "index.js",
+    "version": "0.0.1",
     "dependencies": {
         "selenium-webdriver": "*",
         "glob": "*",
