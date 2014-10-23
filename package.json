@@ -7,8 +7,7 @@
         "glob": "*",
         "nexpect": "*",
         "common-errors": "*",
-        "dateformat": "*",
-        "jsdom": "*"
+        "dateformat": "*"
     },
     "devDependencies": {
         "coffee-script": "*",
