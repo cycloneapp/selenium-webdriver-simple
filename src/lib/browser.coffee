@@ -68,8 +68,10 @@ class Browser
     submit: (id) ->
         @
 
+    location: ->
+        @client.getCurrentUrl()
+
     exists: (ele) ->
-        console.log @_by(ele)
         @client.isElementPresent(@_by(ele))
 
     waitFor: (ele, scb, ecb) ->
