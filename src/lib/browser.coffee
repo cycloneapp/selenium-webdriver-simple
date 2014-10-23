@@ -121,7 +121,7 @@ class Browser
         @
 
     reset: ->
-        options = new selenium.webdriver.WebDriver.Options(@client)
+        options = new $selenium.webdriver.WebDriver.Options(@client)
         options.deleteAllCookies()
         @
 
