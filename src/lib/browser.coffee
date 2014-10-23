@@ -53,6 +53,14 @@ class Browser
         @_setContext @client.get(url)
         @
 
+    ###
+    Returns promise of current stored context if exists
+    ###
+    then: ->
+        if @_context.then?
+            @_context.then arguments
+        @
+
     go: ->
         @walk arguments
         @
