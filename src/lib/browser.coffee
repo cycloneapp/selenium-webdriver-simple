@@ -56,9 +56,9 @@ class Browser
     ###
     Returns promise of current stored context if exists
     ###
-    then: ->
+    then: (cb) ->
         if @_context.then?
-            @_context.then arguments
+            @_context.then cb
         @
 
     go: ->
@@ -76,7 +76,10 @@ class Browser
     submit: (id) ->
         @
 
-    location: ->
+    location: (cb) ->
+        if cb?
+            return @client.getCurrentUrl()
+                .then cb
         @client.getCurrentUrl()
 
     exists: (ele) ->

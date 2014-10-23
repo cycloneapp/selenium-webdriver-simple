@@ -9,9 +9,12 @@ b = require './browser'
 m = require './matcher'
 #console.log m.detect('super-form')()
 browser = new b
-browser.walk 'http://ya.ru'
-browser.exists('#text').then ->
-    console.log arguments
+browser.walk('http://ya.ru').then ->
+    browser.location (l) ->
+        console.log l
+
+#browser.exists('#text').then ->
+#    console.log arguments
 #browser.client.isElementPresent {id: 'text'}
 #    .then ->
 #        console.log arguments
