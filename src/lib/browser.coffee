@@ -1,12 +1,35 @@
-[$selenium, $err] = [
+[$selenium, $err, util, $match] = [
     require './selenium'
     require 'common-errors'
+    require './util'
+    require './matcher'
 ]
 
 class Browser
-    @verbose = no
+    ###
+    @var bool Use verbose output
+    ###
+    verbose: no
+
+    ###
+    @var mixed Current Browser context
+    @private
+    ###
+    _context: null
+
+    @Errors = $err
+
     constructor: (@config) ->
-        {browser, selenium, @verbose, @timeout} = @config
+        if isEmpty(@config)
+            @config =
+                browser: ''
+                selenium: ''
+                verbose: no
+                timeout: 5000
+        {@browser, selenium, @verbose, @timeout} = @config
+
+        if @verbose
+            util.info 'starting selenium-server', 'browser'
 
         $selenium
             .setup selenium
@@ -14,33 +37,54 @@ class Browser
         
         unless $selenium.isRunning()
             throw new $err.Error 'Selenium server is not running'
+        else
+            util.succ 'selenium-server started', 'browser'
+
+        @_checkCapabilities()
             
         @server = $selenium.getInstance()
 
         @client = new $selenium.webdriver.Builder()
                         .usingServer @server.address()
-                        .withCapabilities @_determineCapabilities()
+                        .withCapabilities @capabilities
                         .build()
 
     walk: (url) ->
-        @client.get url
+        @_setContext @client.get(url)
         @
 
     go: ->
         @walk arguments
+        @
 
     wait: (cb, time=1000) ->
-        @client.wait(cb, time)
+        @_setContext @client.wait(cb, time)
         @
 
     click: (ele) ->
-        @_find(ele).click()
+        @_setContext @_find(ele).click()
         @
 
     submit: (id) ->
-        @_
+        @
 
-    waitFor: ->
+    exists: (ele) ->
+        console.log @_by(ele)
+        @client.isElementPresent(@_by(ele))
+
+    waitFor: (ele, scb, ecb) ->
+        tries = 0
+        periodical = setInterval =>
+            _e = @client.isElementPresent ele
+            if _e
+                scb()
+                clearInterval periodical
+            else
+                if tries < 5
+                    tries = tries+1
+                else
+                    ecb()
+
         @
 
     fill: (field, value) ->
@@ -53,7 +97,7 @@ class Browser
     @todo instance methods
     ###
     url: ->
-        @
+        @client.getCurrentUrl()
 
     title: (cb) ->
         @client.getTitle().then(cb)
@@ -63,20 +107,23 @@ class Browser
     end of instance methods
     ###
 
-    sleep: ->
-        @
+    sleep: (time) ->
+        time ?= @timeout
+        @wait ->
+            util.succ "was asleep for #{time}ms"
+        , time
 
     screenshot: ->
+        throw (new $err.NotImplemented 'method not implemented')
 
     find: (sel)  ->
-        @client.findElement sel
+        @_setContext @_find(sel)
         @
-
-
 
     reset: ->
         options = new selenium.webdriver.WebDriver.Options(@client)
         options.deleteAllCookies()
+        @
 
     quit: () ->
         if @client?
@@ -90,15 +137,42 @@ class Browser
     isVerbose: ->
         if @verbose? and @verbose then yes else no
 
+    ###
+    @internal
+    ###
+
     _find: (ele) ->
-        @client.findElement ele
+        @client.findElement @_by(ele)
 
-    _determineCapabilities: (selenium) ->
-        if selenium? and selenium.config()?
-            _browser = selenium.config().browser
+    _by: (ele) ->
+        $match.detect(ele)(@_cleanSelector(ele))
+        # console.log sel
+        # sel
+
+    _checkCapabilities: ->
+        _browser = if @config? and @config.browser? and not isEmpty(@config.browser)
+            @config.browser
         else
-            _browser = 'firefox'
-        @browser = _browser
-        @browser
+            'firefox'
+        
+        if $selenium.isCapable _browser
+            @browser = _browser
+        else
+            @browser = 'firefox'
 
-exports = Browser
+        @capabilities = $selenium.getCapabilities @browser
+
+    _getContext: ->
+        @_context
+
+    _setContext: (c) ->
+        @_context = c
+        @
+
+    _cleanSelector: (sel) ->
+        sel.replace /[\#\.\>]/g, ''
+
+
+
+
+module.exports = Browser

@@ -19,14 +19,24 @@ util.extend Selenium,
     config: ->
         cfg?.selenium
 
-    setup: ({@path, @host, @port}) ->
-        unless @path?
-            @path = @locate()
-        unless @port?
-            @port = @portprober.findFreePort()
+    setup: (args) ->
+        if isEmpty(args)
+            args =
+                path: Selenium.locate()
+                port: Selenium.portprober.findFreePort()
+                host: ''
+        {@path, @host, @port} = args
 
         @configured = true
         @
+
+    isCapable: (browser) ->
+        @webdriver.Capabilities[browser]? and typeof @webdriver.Capabilities[browser] is 'function'
+
+    getCapabilities: (browser) ->
+        if @isCapable browser
+            return @webdriver.Capabilities[browser]()
+        {}
 
 
 ###
@@ -44,27 +54,28 @@ run/stop server
 ###
 util.extend Selenium,
     running: no
-    start: ({path, host, port}) ->
+    start: ->
         if not @configured
             @setup()
 
-        @server = new Selenium.server @path,
+        @_server = new Selenium.server @path,
             port: @port
+        @_server.start()
         @
 
     getInstance: ->
-        @server
+        @_server
 
     stop: ->
         if @isRunning()
-            @server.stop()
+            @_server.stop()
         @
 
     isRunning: ->
-        if @server?
-            return @server.isRunning()
+        if @_server?
+            return @_server.isRunning()
         false
 
 
 
-exports.Selenium = Selenium
+module.exports = Selenium

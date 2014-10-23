@@ -42,8 +42,11 @@ _compile = (args...) ->
     [cmd, argv] = ['coffee', _opts.split("\x20")]
     args.unshift('--bare') if dev
 
-    _run cmd, argv, ->
-        util.succ 'compiled successfully', 'compile'
+    _run cmd, argv, (_c) ->
+        if _c is 0
+            util.succ 'compiled successfully', 'compile'
+        else
+            util.error 'compilation failed', 'compile'
 
 _watch = (file) ->
     if file?
@@ -62,13 +65,13 @@ _run = (args...) ->
     nexpect.spawn _cmd, _args
         .run (e, o, ec) ->
             if ec > 0 and e isnt undefined
-                util.error "error while executing cmd `#{_cmd}`: #{if e? then ''+e+', ' else ''}exit code #{ec}"
+                util.error "error while executing cmd `#{_cmd}` with args `#{_args.join '\x20'}`: #{if e? then ''+e+', ' else ''}exit code #{ec}"
             if e
                 console.log e                
             if o and o.length isnt 0
                 console.log o.join("\n")
             if _cb
-                _cb()
+                _cb(ec)
 
 _exec = (file) ->
     _file = path.basename file
@@ -145,13 +148,24 @@ task 'ttt', 'ttt', (o) ->
 task 'testrun', 'Ensure Selenium server can start', (opts) ->
     selenium = require('./lib/selenium')
     msg      = "Selenium server is" 
-    
-    selenium.run()
-    if selenium.isRunning()
-        util.succ "#{msg} running"
-    else
-        util.error "#{msg} not running"
-    selenium.stopServer()
+
+    util.info 'starting selenium-server', 'selenium-testrun'
+    selenium.start()
+    util.info 'waiting for 5000ms...', 'selenium-testrun'
+    setTimeout ->
+        if selenium.isRunning()
+            util.succ "#{msg} running"
+        else
+            util.error "#{msg} not running"
+        selenium.stop()
+    , 5000
+
+    # if selenium.isRunning()
+    #     
+    # else
+    #     
+    #     console.log selenium
+    # selenium.stop()
 
 
 

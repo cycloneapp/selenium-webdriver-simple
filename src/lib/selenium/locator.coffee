@@ -6,13 +6,10 @@
 
 module.exports = 
     locate: ->
-        #console.log @config().latestVersion
         @_locateJar()
 
     _locateJar: ->
         if not @_jar?
-            #console.log path.resolve "../../#{@config().path}"
-            #console.log util.sync("./#{@config().path}/*")
             try 
                 jar = path.resolve util.sync("./#{@config().path}/selenium-standalone*.jar").first()
             catch e
