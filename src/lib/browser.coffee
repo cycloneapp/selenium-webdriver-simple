@@ -56,14 +56,13 @@ class Browser
     ###
     Returns promise of current stored context if exists
     ###
-    then: (cb) ->
-        if @_context.then?
+    next: (cb) ->
+        if @_context isnt undefined and @_context.then?
             @_context.then cb
         @
 
     go: ->
         @walk arguments
-        @
 
     wait: (cb, time=1000) ->
         @_setContext @client.wait(cb, time)
