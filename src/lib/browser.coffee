@@ -194,6 +194,7 @@ class Browser
 
 
 Browser.useWdts = (suite) ->
+    suite ?= require('selenium-webdriver/testing')
     [it, describe] = [suite.it, suite.describe]
     [it, describe]
 
