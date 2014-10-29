@@ -194,11 +194,7 @@ class Browser
 
 
 Browser.useWdts = (suite) ->
-    methods = ['it', 'describe']
-    for method of methods
-        global[method] = suite[method]
-
-
-
+    [it, describe] = [suite.it, suite.describe]
+    [it, describe]
 
 module.exports = Browser
