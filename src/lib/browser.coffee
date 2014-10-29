@@ -49,6 +49,8 @@ class Browser
                         .withCapabilities @capabilities
                         .build()
 
+        @_injectInstanceMethods()
+
     walk: (url) ->
         @_setContext @client.get(url)
         @
@@ -109,7 +111,7 @@ class Browser
     @todo instance methods
     ###
     url: ->
-        @client.getCurrentUrl()
+        @location arguments
 
     title: (cb) ->
         @client.getTitle().then(cb)
@@ -174,6 +176,12 @@ class Browser
 
         @capabilities = $selenium.getCapabilities @browser
 
+    _injectInstanceMethods: ->
+        @manager = =>
+            @client.manage()
+        @logs = =>
+            @manager().logs()
+
     _getContext: ->
         @_context
 
@@ -184,6 +192,15 @@ class Browser
     _cleanSelector: (sel) ->
         sel.replace /[\#\.\>]/g, ''
 
+
+Browser.useWdSuite = ->
+    suite   = require 'selenium-webdriver/testing'
+    methods = ['it', 'describe']
+    for method of methods
+        if not isEmpty(global[method])
+            global['_'+method] = global[method]
+        global[method] = suite[method]
+    
 
 
 
