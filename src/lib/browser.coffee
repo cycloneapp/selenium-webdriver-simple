@@ -193,14 +193,11 @@ class Browser
         sel.replace /[\#\.\>]/g, ''
 
 
-Browser.useWdSuite = ->
-    suite   = require 'selenium-webdriver/testing'
+Browser.useWdts = (suite) ->
     methods = ['it', 'describe']
     for method of methods
-        if not isEmpty(global[method])
-            global['_'+method] = global[method]
         global[method] = suite[method]
-    
+
 
 
 
