@@ -122,7 +122,7 @@ task 'coverage:methods', 'Returns methods defined in given file', (opts) ->
                     _m[1]
                 if matches.length isnt 0
                     util.info 'found '+matches.length+' matches', 'coverage'
-
+                    util.flatout matches
                 else
                     util.info 'no matches found', 'coverage'
         else
