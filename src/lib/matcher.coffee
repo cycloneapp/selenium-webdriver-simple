@@ -55,6 +55,12 @@ Matcher =
             when 'css' then wd.By.css
             else wd.By.name
 
+    by: (type) ->
+        type ?= 'id'
+        if wd.By[type] isnt undefined
+            wd.By[type]
+        else
+            wd.By.id
 
     is: (_s, type) ->
         @

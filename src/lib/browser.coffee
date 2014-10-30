@@ -51,6 +51,9 @@ class Browser
 
         @_injectInstanceMethods()
 
+    ###
+    Launches browser and opens provided URL
+    ###
     walk: (url) ->
         @_setContext @client.get(url)
         @
@@ -63,20 +66,40 @@ class Browser
             @_context.then cb
         @
 
+    ###
+    @alias Browser::walk
+    ###
     go: ->
         @walk arguments
 
+    ###
+    Waits desired time and executes callback
+    ###
     wait: (cb, time=1000) ->
         @_setContext @client.wait(cb, time)
         @
 
+    ###
+    Clicks at links, buttons etc.
+    If `element` not passed as argument, uses one stored as this._context
+    ###
     click: (ele) ->
-        @_setContext @_find(ele).click()
+        if not ele?
+            ctx = @_getContext()
+            ctx.click()
+        else
+            @_setContext @_find(ele).click()
         @
 
+    ###
+    @todo
+    ###
     submit: (id) ->
-        @
+        throw (new $err.NotImplemented 'method not implemented')
 
+    ###
+    Returns current location
+    ###
     location: (cb) ->
         if cb?
             return @client.getCurrentUrl()
@@ -86,6 +109,10 @@ class Browser
     exists: (ele) ->
         @client.isElementPresent(@_by(ele))
 
+    ###
+    Waits for element to present
+    @notice WIP!
+    ###
     waitFor: (ele, scb, ecb) ->
         tries = 0
         periodical = setInterval =>
@@ -101,6 +128,9 @@ class Browser
 
         @
 
+    ###
+    Fills field with value
+    ###
     fill: (field, value) ->
         @_find(field).then (ele) ->
             ele.clear()
@@ -114,8 +144,11 @@ class Browser
         @location arguments
 
     title: (cb) ->
-        @client.getTitle().then(cb)
-        @
+        if cb?
+            @client.getTitle().then(cb)
+        else
+            @_setContext @client.getTitle()
+            @
 
     ###
     end of instance methods
@@ -132,6 +165,10 @@ class Browser
 
     find: (sel)  ->
         @_setContext @_find(sel)
+        @
+
+    findByText: (text) ->
+        @_setContext @_find(text, $match.by('partialLinkText'))
         @
 
     reset: ->
@@ -155,7 +192,9 @@ class Browser
     @internal
     ###
 
-    _find: (ele) ->
+    _find: (ele, _by) ->
+        if _by?
+            return @client.findElement _by(ele)
         @client.findElement @_by(ele)
 
     _by: (ele) ->
