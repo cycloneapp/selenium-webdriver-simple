@@ -106,7 +106,13 @@ class Browser
                 .then cb
         @client.getCurrentUrl()
 
-    exists: (ele) ->
+    ###
+    Checks if ele exists or not and executes callbacks
+    Best use with Browser::wait()
+    ###
+    exists: (ele, cb = (-> true), ecb = (-> false)) ->
+        if cb? or ecb?
+            return @client.isElementPresent(@_by(ele)).then cb, ecb
         @client.isElementPresent(@_by(ele))
 
     ###
