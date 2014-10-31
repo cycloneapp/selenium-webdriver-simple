@@ -1,7 +1,8 @@
-[glob, path, df] = [
+[glob, path, df, _] = [
     require 'glob'
     require 'path'
     require 'dateformat'
+    require 'lodash'
 ]
 
 exports = module.exports if exports is undefined
@@ -20,6 +21,9 @@ exports.include = include = (klass, mixin) ->
 exports.merge = merge = (options, overrides) ->
     extend (extend {}, options), overrides
 
+###
+@todo Replace with Lodash methods
+###
 exports.last = last = (args...) ->
     if not isArray(args[0]) and isNum args[0]
         back = args[0]
@@ -40,11 +44,17 @@ Array::first   ?= first
 Array::last    ?= last
 Array::compact ?= compact
 
-exports.put = put = (m, type = 'log') ->
+exports.put = put = (m, ext_args...) ->
+    [type, timestamps] = ext_args
+    type ?= 'log'
+    timestamps ?= false
     func = if typeof console[type] is 'function'
         console[type]
     else
         console.log
+
+    if timestamps
+        m = prependTime m
 
     func m
 
@@ -57,16 +67,17 @@ exports.prependTime = prependTime = (s, colorful = true) ->
     _string = "#{_formatted}#{s}"
 
 exports.error = (m, label = 'Error') ->
-    put prependTime("\x20\u001b[1m\u001b[31m✖ #{label}:\u001b[39m\u001b[22m \u001b[1m#{m}\u001b[22m")
+    put "\x20\u001b[31m✖ \u001b[1m#{label}:\u001b[39m\u001b[22m \u001b[1m#{m}\u001b[22m", 'log', true
 
 exports.info = (m, label = 'Notice') ->
-    put prependTime("\x20\u001b[1m\u001b[34mℹ #{label}:\u001b[39m\u001b[22m #{m}")
+    put "\x20\u001b[34mℹ \u001b[1m#{label}:\u001b[39m\u001b[22m #{m}"
 
 exports.warn = (m, label = 'Warning') ->
-    put prependTime("\x20\u001b[1m\u001b[33m⚠ #{label}:\u001b[39m\u001b[22m #{m}")
+    put "\x20\u001b[33m⚠ \u001b[1m#{label}:\u001b[39m\u001b[22m #{m}", 'log', true
+    #put "\x20\u001b[1m\u001b[33m⚠ #{label}:\u001b[39m\u001b[22m #{m}", 'log', true
 
 exports.succ = (m, label = '') ->
-    put prependTime("\x20\u001b[1m\u001b[32m✔ #{label}\u001b[39m\u001b[22m #{m}")
+    put "\x20\u001b[32m✔ \u001b[1m#{label}\u001b[39m\u001b[22m #{m}"
 
 exports.isArray = isArray = (_in) ->
     if Array.isArray isnt undefined
@@ -105,9 +116,26 @@ exports.require_relative = (fi) ->
 
 exports.glob = extend exports, glob
 
+exports.Module = class Module
+    @extend: (obj) ->
+        for key, value of obj when key not in moduleKeywords
+            @[key] = value
+
+        obj.extended?.apply(@)
+        @
+
+    @include: (obj) ->
+        for key, value of obj when key not in ['extended', 'included']
+            @::[key] = value
+
+        obj.included?.apply(@)
+        @
+
 globals = ['glob', 'put', 'isArray', 'isBool', 'isNum', 'isString', 'isEmpty', 'extend', 'include', 'merge']
 
 for m in globals
     if global[m]? then global['_'+m] = global[m]
     global[m] = exports[m]
 
+# Lodash
+global['_'] = _

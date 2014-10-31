@@ -1,24 +1,13 @@
-[util, cfg] = [
+[util, $path] = [
     require './util'
-    require '../config.json'
+    require 'path'
 ]
 
-###
-Selenium modules
-###
-Selenium = util.merge {},
-    webdriver: require 'selenium-webdriver'
-    server: require('selenium-webdriver/remote').SeleniumServer
-    portprober: require 'selenium-webdriver/net/portprober'
-    #test: require 'selenium-webdriver/testing'
 
 ###
 Configuration
 ###
-util.extend Selenium,
-    config: ->
-        cfg?.selenium
-
+SeleniumConfiguration =
     setup: (args) ->
         if isEmpty(args)
             args =
@@ -31,51 +20,79 @@ util.extend Selenium,
         @
 
     isCapable: (browser) ->
-        @webdriver.Capabilities[browser]? and typeof @webdriver.Capabilities[browser] is 'function'
+        Selenium.webdriver.Capabilities[browser]? and typeof Selenium.webdriver.Capabilities[browser] is 'function'
 
     getCapabilities: (browser) ->
         if @isCapable browser
-            return @webdriver.Capabilities[browser]()
+            return Selenium.webdriver.Capabilities[browser]()
         {}
 
-
-###
-Extensions
-###
-ext = 
-    locator: require './selenium/locator'
-    updater: require './selenium/updater'
-
-util.extend Selenium, ext.locator
-util.extend Selenium, ext.updater
     
 ###
 run/stop server
 ###
-util.extend Selenium,
+SeleniumRunner =
     running: no
     start: ->
         if not @configured
             @setup()
 
-        @_server = new Selenium.server @path,
+        @srv new Selenium.server @jar,
             port: @port
-        @_server.start()
+        @srv().start()
         @
 
-    getInstance: ->
+    address: ->
+        @srv().address()
+
+    srv: (_srv) ->
+        if _srv? 
+            @_server = _srv
+            return @
         @_server
 
     stop: ->
         if @isRunning()
-            @_server.stop()
+            @srv().stop()
         @
 
     isRunning: ->
         if @_server?
-            return @_server.isRunning()
+            return @srv().isRunning()
         false
 
+SeleniumJarLocator = require './selenium/locator'
 
+###
+Selenium modules
+###
+class Selenium extends util.Module
+    @webdriver = require 'selenium-webdriver'
+    @server = require('selenium-webdriver/remote').SeleniumServer
+    @portprober = require 'selenium-webdriver/net/portprober'
+
+    @include SeleniumConfiguration
+    @include SeleniumJarLocator
+    @include SeleniumRunner
+
+    constructor: (@path = "#{__dirname}/../vendor", @port = Selenium.portprober.findFreePort(), @ext_args = {}) ->
+
+        if _.isEmpty(@path)
+            extend @, path: "#{__dirname}/../vendor"
+        else
+            @path = $path.resolve @path
+        if _.isEmpty(@port)
+            extend @, port: Selenium.portprober.findFreePort()
+
+        @jar = @locate()
+
+        if not _.isUndefined(@ext_args.numericalPort) and _.isBoolean(@ext_args.numericalPort)
+            if 'then' of @port
+                @port.then (p) =>
+                    @port = p
+
+        @configured = true
+
+#include Selenium, (require './selenium/locator')
 
 module.exports = Selenium

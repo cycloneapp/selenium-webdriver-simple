@@ -9,13 +9,14 @@ module.exports =
         @_locateJar()
 
     _locateJar: ->
-        if not @_jar?
+        console.log @path
+        if not @jar?
             try 
-                jar = path.resolve util.sync("./#{@config().path}/selenium-standalone*.jar").first()
+                jar = path.resolve util.sync("#{@path}/selenium-standalone*.jar").first()
             catch e
                 jar = null
             if not jar?
-                throw (new Error 'cannot locate Selenium standalone server JAR')
+                throw (new Error "cannot locate Selenium server JAR, looked at '#{@path}'")
             else
-                @_jar = jar
-        @_jar
+                @jar = jar
+        @jar

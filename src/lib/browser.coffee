@@ -20,29 +20,33 @@ class Browser
     @Errors = $err
 
     constructor: (@config) ->
-        if isEmpty(@config)
-            @config =
-                browser: ''
-                selenium: ''
-                verbose: no
-                timeout: 5000
+        if _.isEmpty(@config) or _.isUndefined(@config)
+            @config = {}
+
+        @config = _.defaults @config,
+            browser: 'firefox'
+            selenium:   
+                path: process.cwd()
+                port: null
+            verbose: no
+            timeout: 5000
+            
         {@browser, selenium, @verbose, @timeout} = @config
 
         if @verbose
             util.info 'starting selenium-server', 'browser'
 
-        $selenium
-            .setup selenium
-            .start()
+        @server = new $selenium selenium.path, selenium.port
+        @server.start()
         
-        unless $selenium.isRunning()
+        unless @server.isRunning()
             throw new $err.Error 'Selenium server is not running'
         else
             util.succ 'selenium-server started', 'browser'
 
         @_checkCapabilities()
             
-        @server = $selenium.getInstance()
+        #@server = $selenium.getInstance()
 
         @client = new $selenium.webdriver.Builder()
                         .usingServer @server.address()
@@ -214,12 +218,12 @@ class Browser
         else
             'firefox'
         
-        if $selenium.isCapable _browser
+        if @server.isCapable _browser
             @browser = _browser
         else
             @browser = 'firefox'
 
-        @capabilities = $selenium.getCapabilities @browser
+        @capabilities = @server.getCapabilities @browser
 
     _injectInstanceMethods: ->
         @manager = =>

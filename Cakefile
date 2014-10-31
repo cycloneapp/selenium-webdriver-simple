@@ -160,12 +160,5 @@ task 'testrun', 'Ensure Selenium server can start', (opts) ->
         selenium.stop()
     , 5000
 
-    # if selenium.isRunning()
-    #     
-    # else
-    #     
-    #     console.log selenium
-    # selenium.stop()
-
 
 
