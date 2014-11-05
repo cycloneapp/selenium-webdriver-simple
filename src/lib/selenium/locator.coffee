@@ -9,10 +9,9 @@ module.exports =
         @_locateJar()
 
     _locateJar: ->
-        console.log @path
         if not @jar?
             try 
-                jar = path.resolve util.sync("#{@path}/selenium-standalone*.jar").first()
+                jar = path.resolve util.sync("#{@path}/selenium*.jar").first()
             catch e
                 jar = null
             if not jar?

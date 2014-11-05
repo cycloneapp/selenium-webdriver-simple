@@ -45,8 +45,6 @@ class Browser
             util.succ 'selenium-server started', 'browser'
 
         @_checkCapabilities()
-            
-        #@server = $selenium.getInstance()
 
         @client = new $selenium.webdriver.Builder()
                         .usingServer @server.address()
