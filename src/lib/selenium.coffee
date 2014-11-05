@@ -93,6 +93,5 @@ class Selenium extends util.Module
 
         @configured = true
 
-#include Selenium, (require './selenium/locator')
 
 module.exports = Selenium
