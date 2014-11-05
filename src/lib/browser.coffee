@@ -36,13 +36,11 @@ class Browser
         if @verbose
             util.info 'starting selenium-server', 'browser'
 
-        @server = new $selenium selenium.path, selenium.port
+        @server = new $selenium selenium.path, selenium.port, {verbose: @verbose}
         @server.start()
         
         unless @server.isRunning()
             throw new $err.Error 'Selenium server is not running'
-        else
-            util.succ 'selenium-server started', 'browser'
 
         @_checkCapabilities()
 
@@ -57,6 +55,8 @@ class Browser
     Launches browser and opens provided URL
     ###
     walk: (url) ->
+        if @isVerbose()
+            util.info "pointed to '#{url}'", 'browser'
         @_setContext @client.get(url)
         @
 
@@ -186,9 +186,12 @@ class Browser
 
     quit: () ->
         if @client?
-            @client.quit()
-        if @server? and @server.isRunning()
-            @server.stop()
+            _then = =>
+                util.info 'trying to stop selenium-server', 'browser' if @isVerbose()
+                @server.stop() if @server.stop?
+
+            @client.quit().then _then
+
 
     setVerbose: (val) ->
         @verbose = val
@@ -221,6 +224,9 @@ class Browser
         else
             @browser = 'firefox'
 
+        if @isVerbose()
+            util.info "determined to capable use of '#{@browser}'", 'browser'
+
         @capabilities = @server.getCapabilities @browser
 
     _injectInstanceMethods: ->
@@ -233,6 +239,8 @@ class Browser
         @_context
 
     _setContext: (c) ->
+        if @isVerbose()
+            util.info 'noticed to change context', 'browser'
         @_context = c
         @
 

@@ -39,7 +39,15 @@ SeleniumRunner =
 
         @srv new Selenium.server @jar,
             port: @port
+
+        if @isVerbose()
+            @info 'starting'
+
         @srv().start()
+
+        if @isVerbose()
+            @succ 'server started' if @isRunning()
+
         @
 
     address: ->
@@ -52,14 +60,43 @@ SeleniumRunner =
         @_server
 
     stop: ->
+        if @isVerbose()
+            @info 'scheduled to stop'
         if @isRunning()
             @srv().stop()
+        else
+            @warn 'already stopped?' if @isVerbose()
         @
 
     isRunning: ->
         if @_server?
             return @srv().isRunning()
         false
+
+SeleniumLogger =
+    logNs: 'selenium-server'
+
+    log: (msg) ->
+        console.log msg, @logNs
+
+    error: (msg) ->
+        util.error msg, @logNs
+
+    info: (msg) ->
+        util.info msg, @logNs
+
+    succ: (msg) ->
+        util.succ msg, @logNs
+
+    isVerbose: ->
+        if @ext_args isnt undefined and not _.isUndefined(@ext_args.verbose)
+            !!@ext_args.verbose
+        else
+            false
+
+    setVerbose: (val) ->
+        @ext_args.verbose = !!val
+
 
 SeleniumJarLocator = require './selenium/locator'
 
@@ -74,6 +111,7 @@ class Selenium extends util.Module
     @include SeleniumConfiguration
     @include SeleniumJarLocator
     @include SeleniumRunner
+    @include SeleniumLogger
 
     constructor: (@path = "#{__dirname}/../vendor", @port = Selenium.portprober.findFreePort(), @ext_args = {}) ->
 

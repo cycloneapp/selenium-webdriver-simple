@@ -70,11 +70,10 @@ exports.error = (m, label = 'Error') ->
     put "\x20\u001b[31m✖ \u001b[1m#{label}:\u001b[39m\u001b[22m \u001b[1m#{m}\u001b[22m", 'log', true
 
 exports.info = (m, label = 'Notice') ->
-    put "\x20\u001b[34mℹ \u001b[1m#{label}:\u001b[39m\u001b[22m #{m}"
+    put "\x20\u001b[34mℹ \u001b[1m#{label}\u001b[39m\u001b[22m #{m}"
 
 exports.warn = (m, label = 'Warning') ->
-    put "\x20\u001b[33m⚠ \u001b[1m#{label}:\u001b[39m\u001b[22m #{m}", 'log', true
-    #put "\x20\u001b[1m\u001b[33m⚠ #{label}:\u001b[39m\u001b[22m #{m}", 'log', true
+    put "\x20\u001b[33m⚠ \u001b[1m#{label}\u001b[39m\u001b[22m #{m}", 'log', true
 
 exports.succ = (m, label = '') ->
     put "\x20\u001b[32m✔ \u001b[1m#{label}\u001b[39m\u001b[22m #{m}"
@@ -95,6 +94,7 @@ exports.isString = isString = (_in) ->
     Object::toString.call(_in) is '[object String]'
 
 exports.isEmpty = isEmpty = (_in) ->
+    return false if isBool(_in)
     return true if not _in?
     return _in.length is 0 if isArray(_in) or isString(_in)
     for key of _in  
