@@ -1,7 +1,6 @@
-[util, path, cfg] = [
+[util, path] = [
     require '../util'
     require 'path'
-    require '../../config.json'
 ]
 
 module.exports = 

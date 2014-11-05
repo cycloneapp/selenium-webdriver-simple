@@ -1,13 +1,13 @@
 {
     "name": "selenium-webdriver-simple",
     "main": "index.js",
-    "version": "0.0.3-pl14",
+    "version": "0.0.3-pl15",
     "dependencies": {
         "selenium-webdriver": "*",
         "glob": "*",
-        "nexpect": "*",
-        "common-errors": "*",
-        "dateformat": "*",
+        "nexpect": "^0.4.2",
+        "common-errors": "^0.4.17",
+        "dateformat": "^1.0.8",
         "lodash": "*"
     },
     "devDependencies": {
