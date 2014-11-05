@@ -61,7 +61,7 @@ SeleniumRunner =
 
     stop: ->
         if @isVerbose()
-            @info 'scheduled to stop'
+            @succ 'scheduled to stop'
         if @isRunning()
             @srv().stop()
         else

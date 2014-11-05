@@ -1,6 +1,11 @@
-[$selenium, $err, util, $match] = [
-    require './selenium'
+[   
+    $err
+    $selenium
+    util
+    $match
+] = [
     require 'common-errors'
+    require './selenium'
     require './util'
     require './matcher'
 ]
@@ -30,6 +35,7 @@ class Browser
                 port: null
             verbose: no
             timeout: 5000
+            fullscreen: no
             
         {@browser, selenium, @verbose, @timeout} = @config
 
@@ -50,6 +56,9 @@ class Browser
                         .build()
 
         @_injectInstanceMethods()
+
+        if @isFullscreen()
+            @fullscreen()
 
     ###
     Launches browser and opens provided URL
@@ -184,6 +193,9 @@ class Browser
         options.deleteAllCookies()
         @
 
+    fullscreen: ->
+        @manager().window().maximize()
+
     quit: () ->
         if @client?
             _then = =>
@@ -199,6 +211,10 @@ class Browser
     isVerbose: ->
         if @verbose? and @verbose then yes else no
 
+    isFullscreen: ->
+        if @config.fullscreen?
+            !!@config.fullscreen
+
     ###
     @internal
     ###
@@ -210,8 +226,6 @@ class Browser
 
     _by: (ele) ->
         $match.detect(ele)(@_cleanSelector(ele))
-        # console.log sel
-        # sel
 
     _checkCapabilities: ->
         _browser = if @config? and @config.browser? and not isEmpty(@config.browser)
@@ -225,7 +239,7 @@ class Browser
             @browser = 'firefox'
 
         if @isVerbose()
-            util.info "determined to capable use of '#{@browser}'", 'browser'
+            util.info "determined to be capable of '#{@browser}'", 'browser'
 
         @capabilities = @server.getCapabilities @browser
 
