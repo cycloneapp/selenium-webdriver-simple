@@ -53,7 +53,8 @@ _watch = (file) ->
         _file = path.basename file
         util.info "#{_file} changed, recompiling", 'watch'
 
-    _compile file
+    process.nextTick ->
+        _compile file
 
 _run = (args...) ->
     [_cmd, _args, _cb] = args
@@ -65,7 +66,7 @@ _run = (args...) ->
     nexpect.spawn _cmd, _args
         .run (e, o, ec) ->
             if ec > 0 and e isnt undefined
-                util.error "error while executing cmd `#{_cmd}` with args `#{_args.join '\x20'}`: #{if e? then ''+e+', ' else ''}exit code #{ec}"
+                util.error "error while executing cmd `#{_cmd} #{_args.join '\x20'}`: #{if e? then ''+e+', ' else ''}exit code #{ec}"
             if e
                 console.log e                
             if o and o.length isnt 0

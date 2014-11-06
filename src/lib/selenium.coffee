@@ -39,14 +39,10 @@ SeleniumRunner =
 
         @srv new Selenium.server @jar,
             port: @port
-
-        if @isVerbose()
-            @info 'starting'
+        @info 'starting'
 
         @srv().start()
-
-        if @isVerbose()
-            @succ 'server started' if @isRunning()
+        @succ 'server started'
 
         @
 
@@ -60,12 +56,14 @@ SeleniumRunner =
         @_server
 
     stop: ->
-        if @isVerbose()
-            @succ 'scheduled to stop'
+        @info 'stopping'
+
         if @isRunning()
             @srv().stop()
         else
-            @warn 'already stopped?' if @isVerbose()
+            @warn 'already stopped?'
+
+        @succ 'ordered to stop'
         @
 
     isRunning: ->
@@ -73,20 +71,8 @@ SeleniumRunner =
             return @srv().isRunning()
         false
 
-SeleniumLogger =
+SeleniumVerbose =
     logNs: 'selenium-server'
-
-    log: (msg) ->
-        console.log msg, @logNs
-
-    error: (msg) ->
-        util.error msg, @logNs
-
-    info: (msg) ->
-        util.info msg, @logNs
-
-    succ: (msg) ->
-        util.succ msg, @logNs
 
     isVerbose: ->
         if @ext_args isnt undefined and not _.isUndefined(@ext_args.verbose)
@@ -103,7 +89,7 @@ SeleniumJarLocator = require './selenium/locator'
 ###
 Selenium modules
 ###
-class Selenium extends util.Module
+class Selenium extends util.Modules.Logger
     @webdriver = require 'selenium-webdriver'
     @server = require('selenium-webdriver/remote').SeleniumServer
     @portprober = require 'selenium-webdriver/net/portprober'
@@ -111,10 +97,13 @@ class Selenium extends util.Module
     @include SeleniumConfiguration
     @include SeleniumJarLocator
     @include SeleniumRunner
-    @include SeleniumLogger
+    @include SeleniumVerbose
 
     constructor: (@path = "#{__dirname}/../vendor", @port = Selenium.portprober.findFreePort(), @ext_args = {}) ->
-
+        super @logNs
+        ###
+        @todo: changed internals to use Configuration class
+        ###
         if _.isEmpty(@path)
             extend @, path: "#{__dirname}/../vendor"
         else
@@ -128,6 +117,8 @@ class Selenium extends util.Module
             if 'then' of @port
                 @port.then (p) =>
                     @port = p
+
+        @logCondition @isVerbose()
 
         @configured = true
 

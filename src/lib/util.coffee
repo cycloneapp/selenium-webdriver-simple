@@ -66,17 +66,20 @@ exports.prependTime = prependTime = (s, colorful = true) ->
 
     _string = "#{_formatted}#{s}"
 
-exports.error = (m, label = 'Error') ->
+exports.error = _error = (m, label = 'Error') ->
     put "\x20\u001b[31m✖ \u001b[1m#{label}:\u001b[39m\u001b[22m \u001b[1m#{m}\u001b[22m", 'log', true
 
-exports.info = (m, label = 'Notice') ->
+exports.info = _info = (m, label = 'Notice') ->
     put "\x20\u001b[34mℹ \u001b[1m#{label}\u001b[39m\u001b[22m #{m}"
 
-exports.warn = (m, label = 'Warning') ->
+exports.warn = _warn = (m, label = 'Warning') ->
     put "\x20\u001b[33m⚠ \u001b[1m#{label}\u001b[39m\u001b[22m #{m}", 'log', true
 
-exports.succ = (m, label = '') ->
+exports.succ = _succ = (m, label = '') ->
     put "\x20\u001b[32m✔ \u001b[1m#{label}\u001b[39m\u001b[22m #{m}"
+
+exports.log = _log = (m, label = '') ->
+    put "\x20#{label}\x20#{m}"
 
 exports.isArray = isArray = (_in) ->
     if Array.isArray isnt undefined
@@ -109,16 +112,17 @@ exports.flatout = (_in) ->
     else
         put _in
 
-exports.require_relative = (fi) ->
-    _from = __dirname ? process.cwd()
-    _req  = path.resolve _from, path.normalize(fi)
-    require _req
+exports.uuid = ->
+    'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace /[xy]/g, (c) ->
+        r = Math.random() * 16 | 0
+        v = if c is 'x' then r else (r & 0x3 | 0x8)
+        v.toString 16
 
 exports.glob = extend exports, glob
 
 exports.Module = class Module
     @extend: (obj) ->
-        for key, value of obj when key not in moduleKeywords
+        for key, value of obj when key not in ['extended', 'included']
             @[key] = value
 
         obj.extended?.apply(@)
@@ -130,6 +134,89 @@ exports.Module = class Module
 
         obj.included?.apply(@)
         @
+
+exports.Modules = {}
+
+###
+@todo Make it class
+###
+exports.Modules.DefaultConfiguration = class Configuration extends Module
+    constructor: ->
+        @opts = {}
+
+    mergeOpts: (opts) ->
+        @opts = _.assign @opts, opts
+
+    option: (opt, val) ->
+        if /\./g.test(opt)
+            _opt = @_recursiveOpt opt
+            _opt
+        else
+            if val?
+                @opts[opt] = val
+                
+            if @hasOpt(opt)
+                @opts[opt]
+
+    hasOpt: (opt) ->
+        @opts[opt] isnt undefined
+
+    _recursiveOpt: (opt) ->
+        pieces = opt.split '.'
+        [_key, _val] = [_.last(pieces), @opts]
+
+        for piece in _.initial(pieces)
+            if _val[piece]?
+                _val = _val[piece]
+
+        if _val? and _val[_key]?
+            _val[_key]
+
+    config: ->
+        @opts
+
+exports.Modules.Logger = class Logger extends Configuration
+    constructor: (prefix) ->
+        super()
+        @log_opts =
+            prefix: 'logger'
+            condition: false
+
+        @logPrefix prefix if prefix?
+
+    logCondition: (condition) ->
+        if condition?
+            @log_opts?.condition = !!condition
+
+        !!@log_opts.condition
+
+    logPrefix: (prefix) ->
+        if prefix?
+            if not _.isString(prefix)
+                prefix = Object::toString.call prefix
+            @log_opts?.prefix = prefix
+
+        @log_opts.prefix
+
+    log: (msg) ->
+        if @logCondition()
+            _log msg, @logPrefix()
+
+    succ: (msg) ->
+        if @logCondition()
+            _succ msg, @logPrefix()
+
+    error: (msg) ->
+        if @logCondition()
+            _error msg, @logPrefix()
+
+    info: (msg) ->
+        if @logCondition()
+            _info msg, @logPrefix()
+
+    warn: (msg) ->
+        if @logCondition()
+            _warn msg, @logPrefix()
 
 globals = ['glob', 'put', 'isArray', 'isBool', 'isNum', 'isString', 'isEmpty', 'extend', 'include', 'merge']
 

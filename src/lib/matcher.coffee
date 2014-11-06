@@ -5,9 +5,9 @@
 
 Matcher =
     types: {
-        'id': /\s*\#[\w\-]+$/
+        'id': /^\#[\w\-]+$/
         'class': /\s*\.[\w\-]+$/
-        'cssQuery': /[\w\-\s\*\>]+/
+        'cssQuery': /[\w\-\s\*\>\[\]\:\.]+/
         'name': /^[\w\-]+$/
         'headTags': /^html|head|meta|link|title|body$/
     }
@@ -47,12 +47,15 @@ Matcher =
             when @_testForTag _s then 'tag'
             when @_testForClass _s then 'css'
             when @_testForId _s then 'id'
+            when @_testForName _s then 'name'
+            when @_testForCssQuery _s then 'cssQuery'
             else false
 
         switch type
             when 'tag' then wd.By.tagName
             when 'id' then wd.By.id
             when 'css' then wd.By.css
+            when 'cssQuery' then wd.By.css
             else wd.By.name
 
     by: (type) ->
@@ -62,8 +65,10 @@ Matcher =
         else
             wd.By.id
 
-    is: (_s, type) ->
-        @
+    is: (_s, type = 'id') ->
+        if @types[type]?
+            return @types[type].test _s
+        false
 
     _testForId: (el) ->
         @types.id.test el
@@ -77,9 +82,10 @@ Matcher =
         else
             el in @tags
 
+    _testForName: (el) ->
+        @types.name.test el
 
-
-
-
+    _testForCssQuery: (el) ->
+        @types.cssQuery.test el
 
 module.exports = Matcher

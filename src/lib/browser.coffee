@@ -10,7 +10,31 @@
     require './matcher'
 ]
 
-class Browser
+###
+Class mixins
+###
+[
+    BrowserContext
+    BrowserCommands
+    BrowserDOMActions
+] = [
+    require './browser/context'
+    require './browser/commands'
+    require './browser/dom-actions'
+]
+
+#console.log BrowserCommands
+
+class Browser extends util.Modules.Logger
+    uid:      null
+    client:   null
+    server:   null
+    _context: null
+
+    @Matcher = extend {}, $match
+
+
+    @include BrowserCommands
     ###
     @var bool Use verbose output
     ###
@@ -24,38 +48,29 @@ class Browser
 
     @Errors = $err
 
-    constructor: (@config) ->
-        if _.isEmpty(@config) or _.isUndefined(@config)
-            @config = {}
+    constructor: (config = {}) ->
+        super()
 
-        @config = _.defaults @config,
-            browser: 'firefox'
-            selenium:   
-                path: process.cwd()
-                port: null
-            verbose: no
-            timeout: 5000
-            fullscreen: no
-            
-        {@browser, selenium, @verbose, @timeout} = @config
+        @_init config
 
-        if @verbose
-            util.info 'starting selenium-server', 'browser'
-
-        @server = new $selenium selenium.path, selenium.port, {verbose: @verbose}
-        @server.start()
+        if @isAutostart()
+            @info 'autostart'
+            @start()
         
-        unless @server.isRunning()
-            throw new $err.Error 'Selenium server is not running'
+            if not @isSrvRunning() and @isAutostart()
+                throw new $err.Error 'Selenium server is not running'
+        else
+            @info 'autostart disabled, waiting for start'
 
+    start: ->
+        @info "starting, uid: #{@uid}"
+        @server.start()
         @_checkCapabilities()
 
         @client = new $selenium.webdriver.Builder()
-                        .usingServer @server.address()
-                        .withCapabilities @capabilities
-                        .build()
-
-        @_injectInstanceMethods()
+                                .usingServer @server.address()
+                                .withCapabilities @option('capabilities')
+                                .build()
 
         if @isFullscreen()
             @fullscreen()
@@ -63,11 +78,11 @@ class Browser
     ###
     Launches browser and opens provided URL
     ###
-    walk: (url) ->
-        if @isVerbose()
-            util.info "pointed to '#{url}'", 'browser'
-        @_setContext @client.get(url)
-        @
+    # walk: (url) ->
+    #     if @isVerbose()
+    #         @info "pointed to '#{url}'"
+    #     @_setContext @client.get(url)
+    #     @
 
     ###
     Returns promise of current stored context if exists
@@ -78,24 +93,27 @@ class Browser
         @
 
     ###
-    @alias Browser::walk
+    @alias #walk
     ###
-    go: ->
-        @walk arguments
+    # go: ->
+    #     @walk arguments
 
     ###
     Waits desired time and executes callback
     ###
-    wait: (cb, time=1000) ->
-        @_setContext @client.wait(cb, time)
-        @
+    # wait: (cb, time=1000) ->
+    #     @_setContext @client.wait(cb, time)
+    #     @
 
     ###
     Clicks at links, buttons etc.
     If `element` not passed as argument, uses one stored as this._context
     ###
     click: (ele) ->
+        @info "ordered to click on element"
+
         if not ele?
+            @info "no element provided, using stored context"
             ctx = @_getContext()
             ctx.click()
         else
@@ -121,28 +139,27 @@ class Browser
     Checks if ele exists or not and executes callbacks
     Best use with Browser::wait()
     ###
-    exists: (ele, cb = (-> true), ecb = (-> false)) ->
-        if cb? or ecb?
-            return @client.isElementPresent(@_by(ele)).then cb, ecb
+    exists: (ele, cb) ->
+        @info "checking if element '#{ele}' exists"
+        if cb?
+            return @client.isElementPresent(@_by(ele)).then (res) ->
+                cb res
         @client.isElementPresent(@_by(ele))
 
     ###
     Waits for element to present
-    @notice WIP!
     ###
-    waitFor: (ele, scb, ecb) ->
-        tries = 0
-        periodical = setInterval =>
-            _e = @client.isElementPresent ele
-            if _e
-                scb()
-                clearInterval periodical
-            else
-                if tries < 5
-                    tries = tries+1
-                else
-                    ecb()
-
+    waitFor: (ele, cb) ->
+        @info "waiting for element '#{ele}' to appear"
+        @client.wait =>
+            @exists(ele).then (e) ->
+                e
+        , @option 'timeout'
+        .then ->
+            cb true
+        .thenCatch =>
+            @warn "called #waitFor for element, failed to locate one"
+            cb false
         @
 
     ###
@@ -162,25 +179,27 @@ class Browser
 
     title: (cb) ->
         if cb?
-            @client.getTitle().then(cb)
-        else
-            @_setContext @client.getTitle()
-            @
+            return @client.getTitle().then(cb)
+        @_setContext @client.getTitle()
+        @
 
     ###
     end of instance methods
     ###
 
-    sleep: (time) ->
-        time ?= @timeout
-        @wait ->
-            util.succ "was asleep for #{time}ms"
-        , time
+    # sleep: (cb, time) ->
+    #     time ?= @option 'timeout'
+    #     @info "ordered to sleep for #{time}ms"
+    #     @client.sleep(time).then =>
+    #         @succ "was asleep for #{time}ms"
+    #         cb() if cb?
+    #     @
 
     screenshot: ->
         throw (new $err.NotImplemented 'method not implemented')
 
     find: (sel)  ->
+        @info "ordered to find element '#{sel}'"
         @_setContext @_find(sel)
         @
 
@@ -188,60 +207,105 @@ class Browser
         @_setContext @_find(text, $match.by('partialLinkText'))
         @
 
-    reset: ->
-        options = new $selenium.webdriver.WebDriver.Options(@client)
-        options.deleteAllCookies()
+    link: (text) ->
+        @info "ordered to find link containing text '#{text}'"
+        @_setContext @_find(text, $match.by('partialLinkText'))
         @
 
-    fullscreen: ->
-        @manager().window().maximize()
+    # reset: ->
+    #     @info "performing session reset"
+    #     options = new $selenium.webdriver.WebDriver.Options(@client)
+    #     options.deleteAllCookies()
+    #     @
 
-    quit: () ->
-        if @client?
-            _then = =>
-                util.info 'trying to stop selenium-server', 'browser' if @isVerbose()
-                @server.stop() if @server.stop?
+    # fullscreen: ->
+    #     @info "maximizing browser window"
+    #     @manager().window().maximize()
 
-            @client.quit().then _then
+    # quit: () ->
+    #     if @client?
+    #         _then = =>
+    #             @info 'trying to stop selenium-server'
+    #             @server.stop() if @server.stop?
+
+    #         @client.quit().then _then
 
 
     setVerbose: (val) ->
-        @verbose = val
+        @option 'verbose', !!val
 
     isVerbose: ->
-        if @verbose? and @verbose then yes else no
+        !!@option 'verbose'
 
     isFullscreen: ->
-        if @config.fullscreen?
-            !!@config.fullscreen
+        !!@option 'fullscreen'
+
+    isSrvRunning: ->
+        if @server?
+            return @server.isRunning()
+        false
+
+    isAutostart: ->
+        !!@option 'selenium.autostart'
 
     ###
     @internal
     ###
 
+    _init: (config) ->
+        @uid = util.uuid()
+
+        @
+            ._initConfig(config)
+            ._initLogger()
+            ._initSelenium()
+            
+    _initConfig: (config) ->
+        config = _.defaults config,
+            browser: 'firefox'
+            selenium: {}
+            verbose: no
+            timeout: 5000
+            fullscreen: no    
+        config.selenium = _.defaults config.selenium,
+            autostart: yes   
+            path: process.cwd()
+            port: null
+
+        @mergeOpts config
+        @
+
+    _initSelenium: ->
+        @server = new $selenium @option('selenium.path'), @option('selenium.port'), {verbose: @option('verbose')}
+        @succ 'configured selenium-server'
+
+        @
+
+    _initLogger: ->
+        @logPrefix 'browser'
+        @logCondition @option('verbose')
+        @
+
     _find: (ele, _by) ->
+        @info "internal find method invoked, searching for element '#{ele}'"
         if _by?
             return @client.findElement _by(ele)
         @client.findElement @_by(ele)
 
     _by: (ele) ->
-        $match.detect(ele)(@_cleanSelector(ele))
+        Browser.Matcher.detect(ele)(@_cleanSelector(ele))
 
     _checkCapabilities: ->
-        _browser = if @config? and @config.browser? and not isEmpty(@config.browser)
-            @config.browser
-        else
-            'firefox'
+        _browser = @option 'browser' ? 'firefox'
         
         if @server.isCapable _browser
-            @browser = _browser
+            @option 'browser', _browser
         else
-            @browser = 'firefox'
+            @option 'browser', 'firefox'
 
-        if @isVerbose()
-            util.info "determined to be capable of '#{@browser}'", 'browser'
+        @info "determined to be capable of '#{@option('browser')}'"
 
-        @capabilities = @server.getCapabilities @browser
+        @option 'capabilities', @server.getCapabilities(@option('browser'))
 
     _injectInstanceMethods: ->
         @manager = =>
@@ -253,8 +317,7 @@ class Browser
         @_context
 
     _setContext: (c) ->
-        if @isVerbose()
-            util.info 'noticed to change context', 'browser'
+        @info 'noticed to change context'
         @_context = c
         @
 
