@@ -2,13 +2,15 @@ Context =
     included: ->
         do =>
             [
-                @::context
+                @::_context
                 @::_getContext
                 @::_setContext
             ] = [
                 {}
-                -> @context
-                (@context) -> @
+                -> @_context
+                (@_context) -> 
+                    @info 'context changed'
+                    @
             ]
 
 module.exports = Context

@@ -1,0 +1,6 @@
+-t 150s
+--async-only
+-u bdd
+-R spec
+-r lodash
+--compilers coffee:coffee-script/register

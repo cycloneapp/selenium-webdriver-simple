@@ -101,9 +101,8 @@ class Selenium extends util.Modules.Logger
 
     constructor: (@path = "#{__dirname}/../vendor", @port = Selenium.portprober.findFreePort(), @ext_args = {}) ->
         super @logNs
-        ###
-        @todo: changed internals to use Configuration class
-        ###
+
+        # @todo: change internals to use Configuration class
         if _.isEmpty(@path)
             extend @, path: "#{__dirname}/../vendor"
         else

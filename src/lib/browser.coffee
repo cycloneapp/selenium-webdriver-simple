@@ -2,7 +2,7 @@
     $err
     $selenium
     util
-    $match
+    Matcher
 ] = [
     require 'common-errors'
     require './selenium'
@@ -29,12 +29,12 @@ class Browser extends util.Modules.Logger
     uid:      null
     client:   null
     server:   null
-    _context: null
 
-    @Matcher = extend {}, $match
+    #@Matcher = extend {}, $match
 
-
+    @include BrowserContext
     @include BrowserCommands
+    @include BrowserDOMActions
     ###
     @var bool Use verbose output
     ###
@@ -63,6 +63,7 @@ class Browser extends util.Modules.Logger
             @info 'autostart disabled, waiting for start'
 
     start: ->
+        @stopSeleniumPingbacks()
         @info "starting, uid: #{@uid}"
         @server.start()
         @_checkCapabilities()
@@ -109,16 +110,16 @@ class Browser extends util.Modules.Logger
     Clicks at links, buttons etc.
     If `element` not passed as argument, uses one stored as this._context
     ###
-    click: (ele) ->
-        @info "ordered to click on element"
+    # click: (ele) ->
+    #     @info "ordered to click on element"
 
-        if not ele?
-            @info "no element provided, using stored context"
-            ctx = @_getContext()
-            ctx.click()
-        else
-            @_setContext @_find(ele).click()
-        @
+    #     if not ele?
+    #         @info "no element provided, using stored context"
+    #         ctx = @_getContext()
+    #         ctx.click()
+    #     else
+    #         @_setContext @_find(ele).click()
+    #     @
 
     ###
     @todo
@@ -198,19 +199,19 @@ class Browser extends util.Modules.Logger
     screenshot: ->
         throw (new $err.NotImplemented 'method not implemented')
 
-    find: (sel)  ->
-        @info "ordered to find element '#{sel}'"
-        @_setContext @_find(sel)
-        @
+    # find: (sel)  ->
+    #     @info "ordered to find element '#{sel}'"
+    #     @_setContext @_find(sel)
+    #     @
 
-    findByText: (text) ->
-        @_setContext @_find(text, $match.by('partialLinkText'))
-        @
+    # findByText: (text) ->
+    #     @_setContext @_find(text, Browser.Matcher.by('partialLinkText'))
+    #     @
 
-    link: (text) ->
-        @info "ordered to find link containing text '#{text}'"
-        @_setContext @_find(text, $match.by('partialLinkText'))
-        @
+    # link: (text) ->
+    #     @info "ordered to find link containing text '#{text}'"
+    #     @_setContext @_find(text, Browser.Matcher.by('partialLinkText'))
+    #     @
 
     # reset: ->
     #     @info "performing session reset"
@@ -248,12 +249,26 @@ class Browser extends util.Modules.Logger
     isAutostart: ->
         !!@option 'selenium.autostart'
 
+    startSeleniumPingbacks: ->
+        @_pingback = setInterval =>
+            @info 'doing selenium-server life check'
+            if @isSrvRunning()
+                @succ 'selenium-server is alive and running'
+            else
+                @info 'looks like selenium-server stopped, restarting'
+                @server.start()
+        , 15000
+        
+    stopSeleniumPingbacks: ->
+        clearInterval @_pingback    
+
     ###
     @internal
     ###
 
     _init: (config) ->
         @uid = util.uuid()
+        @Matcher = new Matcher
 
         @
             ._initConfig(config)
@@ -286,14 +301,15 @@ class Browser extends util.Modules.Logger
         @logCondition @option('verbose')
         @
 
-    _find: (ele, _by) ->
-        @info "internal find method invoked, searching for element '#{ele}'"
-        if _by?
-            return @client.findElement _by(ele)
-        @client.findElement @_by(ele)
+    # _find: (ele, _by) ->
+    #     @info "internal find method invoked, searching for element '#{ele}'"
+    #     if _by?
+    #         return @client.findElement _by(ele)
+    #     @client.findElement @_by(ele)
 
     _by: (ele) ->
-        Browser.Matcher.detect(ele)(@_cleanSelector(ele))
+        console.log @Matcher.detect(ele)(@_cleanSelector(ele))
+        @Matcher.detect(ele)(@_cleanSelector(ele))
 
     _checkCapabilities: ->
         _browser = @option 'browser' ? 'firefox'
@@ -313,16 +329,17 @@ class Browser extends util.Modules.Logger
         @logs = =>
             @manager().logs()
 
-    _getContext: ->
-        @_context
+    # _getContext: ->
+    #     @_context
 
-    _setContext: (c) ->
-        @info 'noticed to change context'
-        @_context = c
-        @
+    # _setContext: (c) ->
+    #     @info 'noticed to change context'
+    #     @_context = c
+    #     @
+
 
     _cleanSelector: (sel) ->
-        sel.replace /[\#\.\>]/g, ''
+        sel.replace /^[\#\.\>]/g, ''
 
 
 Browser.useWdts = (suite) ->

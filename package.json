@@ -1,22 +1,25 @@
 {
-    "name": "selenium-webdriver-simple",
-    "main": "index.js",
-    "version": "0.0.3-pl17",
-    "dependencies": {
-        "selenium-webdriver": "*",
-        "glob": "*",
-        "nexpect": "^0.4.2",
-        "common-errors": "^0.4.17",
-        "dateformat": "^1.0.8",
-        "lodash": "*"
-    },
-    "devDependencies": {
-        "coffee-script": "*",
-        "cake": "*",
-        "flour": "*",
-        "comment-macros": "*"
-    },
-    "scripts": {
-        "prepublish": "./node_modules/.bin/coffee --compile --no-header --output ./ ./src/ || echo 'Compilation failed, check your sources for errors'"
-    }
+  "name": "selenium-webdriver-simple",
+  "main": "index.js",
+  "version": "0.0.3-pl19",
+  "dependencies": {
+    "selenium-webdriver": "*",
+    "glob": "*",
+    "nexpect": "^0.4.2",
+    "common-errors": "^0.4.17",
+    "dateformat": "^1.0.8",
+    "lodash": "*"
+  },
+  "devDependencies": {
+    "cake": "*",
+    "chai": "^1.10.0",
+    "coffee-script": "*",
+    "comment-macros": "*",
+    "flour": "*",
+    "mocha": "^2.0.1"
+  },
+  "scripts": {
+    "prepublish": "./node_modules/.bin/cake compile || echo 'Compilation failed, check your sources for errors'",
+    "test": "echo wat"
+  }
 }

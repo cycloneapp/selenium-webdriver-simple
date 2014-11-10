@@ -1,21 +1,27 @@
+options = require('selenium-webdriver').WebDriver.Options
+
 BrowserCommands =
     walk: (url) ->
         @info "pointed to '#{url}'"
         @_setContext @client.get(url)
-        @
 
     go: ->
         @walk arguments
 
     reset: ->
         @info "performing session reset"
-        options = new $selenium.webdriver.WebDriver.Options(@client)
+        options = new options(@client)
         options.deleteAllCookies()
         @
 
     fullscreen: ->
         @info "maximizing browser window"
         @manager().window().maximize()
+        @
+
+    # @todo: implement
+    screenshot: ->
+        throw (new $err.NotImplemented 'method not implemented')
 
     manager: ->
         @client.manage()
@@ -30,6 +36,13 @@ BrowserCommands =
                 @server.stop() if @server.stop?
 
             @client.quit().then _then
+
+    stop: ->
+        if @client?
+            @info 'stopping client'
+            @reset()
+            @client.quit().then =>
+                @succ 'client stopped'
 
     sleep: (cb, time) ->
         time ?= @option 'timeout'

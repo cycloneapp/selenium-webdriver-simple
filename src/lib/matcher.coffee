@@ -3,7 +3,7 @@
     require('./selenium').webdriver
 ]
 
-Matcher =
+class Matcher
     types: {
         'id': /^\#[\w\-]+$/
         'class': /\s*\.[\w\-]+$/

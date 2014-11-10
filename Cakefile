@@ -1,8 +1,9 @@
-[flour, util, path, nexpect] = [
+[flour, util, path, nexpect, child] = [
     require 'flour'
     require './src/lib/util'
     require 'path'
     require 'nexpect'
+    require 'child_process'
 ]
 
 #console.log util.globb()
@@ -20,6 +21,16 @@
 #         path.normalize file.replace(/src/, '').replace(/\.coffee/, '.js')
 
 #     [compileList, targetList]
+_execc = (name, args = [], cb = (->), opts = {}) ->
+    _child = child.execFile name, args, opts, (e, out, err) ->
+        #console.log out if out?
+        if e
+            util.error "error while executing `#{name} #{args.join '\x20'}`"
+            console.log "#{e}"
+        else
+            cb()
+    _child.stdout.pipe process.stdout
+
 _compile = (args...) ->
     dev = if util.isBool(util.first(args))
         util.first(args)
@@ -42,11 +53,10 @@ _compile = (args...) ->
     [cmd, argv] = ['coffee', _opts.split("\x20")]
     args.unshift('--bare') if dev
 
-    _run cmd, argv, (_c) ->
-        if _c is 0
-            util.succ 'compiled successfully', 'compile'
-        else
-            util.error 'compilation failed', 'compile'
+    _execc cmd, argv, ->
+        util.succ 'compiled successfully', 'compile'
+        # else
+        #     util.error 'compilation failed', 'compile'
 
 _watch = (file) ->
     if file?
@@ -56,28 +66,10 @@ _watch = (file) ->
     process.nextTick ->
         _compile file
 
-_run = (args...) ->
-    [_cmd, _args, _cb] = args
-    _args ?= []
-
-    unless _cmd?
-        throw (new Error 'no command given to run ')
-
-    nexpect.spawn _cmd, _args
-        .run (e, o, ec) ->
-            if ec > 0 and e isnt undefined
-                util.error "error while executing cmd `#{_cmd} #{_args.join '\x20'}`: #{if e? then ''+e+', ' else ''}exit code #{ec}"
-            if e
-                console.log e                
-            if o and o.length isnt 0
-                console.log o.join("\n")
-            if _cb
-                _cb(ec)
-
-_exec = (file) ->
+_run = (file) ->
     _file = path.basename file
     util.info "running #{_file}", 'runner'
-    _run 'node', [file], ->
+    _execc 'node', [file], ->
         util.succ "finished #{_file}", 'runner'
 
 
@@ -101,7 +93,7 @@ task 'watch', 'Compile sources on changes', (opts) ->
             'lib/*.js'
             'lib/*/*.js'
         ], (stat, file) ->
-            _exec file
+            _run file
 
 option '-f', '--file [FILE]', 'File to cover'
 task 'coverage:methods', 'Returns methods defined in given file', (opts) ->
@@ -130,26 +122,17 @@ task 'coverage:methods', 'Returns methods defined in given file', (opts) ->
             util.error 'file not exists', 'coverage'
             return
 
-task 'ttt', 'ttt', (o) ->
-    console.log '1'
-
-# option '-f', '--file [FILE]', 'file to compile (default: "src/*.coffee")'
-# task 'show', 'Compile and print CoffeeScript  file', (opts) ->
-#     files = opts.file ? util.sync('./src/**').filter (_f) -> _f.indexOf('.coffee') isnt -1
-
-    #if files
-    #console.log '=============================='
-    #compile files, (o) ->
-    #    console.log '=============================='
-    #    console.log "\u0002#{o.file.name}\u000F"
-    #    console.log o.output
-    #    console.log '=============================='
+task 'get-selenium', 'Downloads selenium-server-standalone and places it in ./vendor directory', ->
+    _path = path.resolve './vendor'
+    _execc 'mkdir', ['-p', _path]
+    _execc 'curl', ['-O', 'http://selenium-release.storage.googleapis.com/2.44/selenium-server-standalone-2.44.0.jar'], (-> util.succ('done')), {cwd: _path}
 
 
 task 'testrun', 'Ensure Selenium server can start', (opts) ->
-    selenium = require('./lib/selenium')
+    Selenium = require('./lib/selenium')
     msg      = "Selenium server is" 
 
+    selenium = new Selenium
     util.info 'starting selenium-server', 'selenium-testrun'
     selenium.start()
     util.info 'waiting for 5000ms...', 'selenium-testrun'
@@ -161,5 +144,6 @@ task 'testrun', 'Ensure Selenium server can start', (opts) ->
         selenium.stop()
     , 5000
 
-
+task 'test', 'Run tests', ->
+    _execc './node_modules/.bin/mocha'
 
