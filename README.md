@@ -1,3 +1,6 @@
+# selenium-webdriver-simple 
+[![Build Status](https://travis-ci.org/cycloneapp/selenium-webdriver-simple.svg?branch=master)](https://travis-ci.org/cycloneapp/selenium-webdriver-simple)
+
 WIP!
 
 ## How to
