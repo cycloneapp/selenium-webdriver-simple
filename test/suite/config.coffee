@@ -1,6 +1,6 @@
 module.exports =
-    browser: 'chrome' 
-    verbose: yes
+    browser: 'firefox' 
+    verbose: no
     selenium:
         autostart: no
         path: './vendor'

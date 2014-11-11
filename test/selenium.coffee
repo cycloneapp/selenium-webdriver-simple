@@ -1,10 +1,11 @@
 config   = require './suite/config'
 should   = require('chai').should()
 Selenium = require '../lib/selenium'
+Browser  = require '../lib/browser'
 
 describe 'Selenium tests', ->
     describe 'SeleniumServer', ->
-        it 'should be able to initialize with default configuration', (done) ->
+        it 'must initialize with default configuration', (done) ->
             try
                 @selenium = new Selenium
             catch e
@@ -41,8 +42,16 @@ describe 'Selenium tests', ->
                 @selenium.isRunning().should.be.ok
 
             done()
+
+    describe 'Browser', ->
+        it 'must initialize with default configuration', (done) ->
+            browser = new Browser config
+            browser.should.not.be.undefined
+            browser.should.have.property 'opts'
+            browser.opts.should.not.be.null
+            browser.should.have.property 'uid'
+            browser.uid.should.not.be.null
         
-        
-        
+            done()
         
  

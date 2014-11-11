@@ -1,7 +1,14 @@
-[glob, path, df, _] = [
+[
+    glob
+    path
+    df
+    vow 
+    _
+] = [
     require 'glob'
     require 'path'
     require 'dateformat'
+    require 'vow'
     require 'lodash'
 ]
 
@@ -66,17 +73,24 @@ exports.prependTime = prependTime = (s, colorful = true) ->
 
     _string = "#{_formatted}#{s}"
 
+__label = (l) ->
+    "\x1b[;38;5;31m\u001b[1m#{l}\u001b[22m\x1b[0m"
+
 exports.error = _error = (m, label = 'Error') ->
-    put "\x20\u001b[31m✖ \u001b[1m#{label}:\u001b[39m\u001b[22m \u001b[1m#{m}\u001b[22m", 'log', true
+    put "\x20#{__label(label)}\x20\u001b[31m\u001b[1merror\u001b[39m\u001b[22m\x20#{m}", 'log'
 
 exports.info = _info = (m, label = 'Notice') ->
-    put "\x20\u001b[34mℹ \u001b[1m#{label}\u001b[39m\u001b[22m #{m}"
+    put "\x20#{__label(label)}\x20\u001b[34m\u001b[1minfo\u001b[39m\u001b[22m\x20#{m}"
 
-exports.warn = _warn = (m, label = 'Warning') ->
-    put "\x20\u001b[33m⚠ \u001b[1m#{label}\u001b[39m\u001b[22m #{m}", 'log', true
+exports.warn = _warn = (m, label = '') ->
+    put "\x20#{__label(label)}\x20\u001b[33m\u001b[1mwarning\u001b[39m\u001b[22m\x20#{m}", 'log'
+    #put "\x20\u001b[33m⚠ \u001b[1m#{label}\u001b[39m\u001b[22m #{m}", 'log', true
 
 exports.succ = _succ = (m, label = '') ->
-    put "\x20\u001b[32m✔ \u001b[1m#{label}\u001b[39m\u001b[22m #{m}"
+    put "\x20#{__label(label)}\x20\u001b[32m\u001b[1msuccess\u001b[39m\u001b[22m\x20#{m}"
+
+exports.debug = _debug = (m, label = '') ->
+    put "\x20#{__label(label)}\x20\u001b[35m\u001b[1mdebug\u001b[39m\u001b[22m\x20#{m}"
 
 exports.log = _log = (m, label = '') ->
     put "\x20#{label}\x20#{m}"
@@ -140,7 +154,7 @@ exports.Modules = {}
 ###
 @todo Make it class
 ###
-exports.Modules.DefaultConfiguration = class Configuration extends Module
+exports.Modules.Configuration = class Configuration extends Module
     constructor: ->
         @opts = {}
 
@@ -217,6 +231,14 @@ exports.Modules.Logger = class Logger extends Configuration
     warn: (msg) ->
         if @logCondition()
             _warn msg, @logPrefix()
+
+    debug: (msg) ->
+        _debug msg, @logPrefix()
+
+
+exports.Modules.Deferred =
+    defer: ->
+        new vow.Deferred()
 
 globals = ['glob', 'put', 'isArray', 'isBool', 'isNum', 'isString', 'isEmpty', 'extend', 'include', 'merge']
 

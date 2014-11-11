@@ -112,6 +112,7 @@ class Selenium extends util.Modules.Logger
 
         @jar = @locate()
 
+        # @todo: move this to separate method
         if not _.isUndefined(@ext_args.numericalPort) and _.isBoolean(@ext_args.numericalPort)
             if 'then' of @port
                 @port.then (p) =>

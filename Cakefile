@@ -1,8 +1,7 @@
-[flour, util, path, nexpect, child] = [
+[flour, util, path, child] = [
     require 'flour'
     require './src/lib/util'
     require 'path'
-    require 'nexpect'
     require 'child_process'
 ]
 
@@ -25,7 +24,7 @@ _execc = (name, args = [], cb = (->), opts = {}) ->
     _child = child.execFile name, args, opts, (e, out, err) ->
         #console.log out if out?
         if e
-            util.error "error while executing `#{name} #{args.join '\x20'}`"
+            util.error "error while executing `#{name} #{args.join '\x20'}`", 'runner'
             console.log "#{e}"
         else
             cb()
@@ -134,10 +133,9 @@ task 'get-selenium', 'Downloads selenium-server-standalone and places it in ./ve
     _execc 'mkdir', ['-p', _path]
     _execc 'curl', ['-O', 'http://selenium-release.storage.googleapis.com/2.44/selenium-server-standalone-2.44.0.jar'], (-> util.succ('done')), {cwd: _path}
 
-
 task 'testrun', 'Ensure Selenium server can start', (opts) ->
     Selenium = require('./lib/selenium')
-    msg      = "Selenium server is" 
+    msg      = 'selenium server is'
 
     selenium = new Selenium
     util.info 'starting selenium-server', 'selenium-testrun'
@@ -145,12 +143,18 @@ task 'testrun', 'Ensure Selenium server can start', (opts) ->
     util.info 'waiting for 5000ms...', 'selenium-testrun'
     setTimeout ->
         if selenium.isRunning()
-            util.succ "#{msg} running"
+            util.succ "#{msg} running", 'selenium-testrun'
         else
-            util.error "#{msg} not running"
+            util.error "#{msg} not running", 'selenium-testrun'
         selenium.stop()
     , 5000
 
 task 'test', 'Run tests', ->
     _execWithExit './node_modules/.bin/mocha'
 
+task 't', 't', ->
+    util.debug 'test', 'app'
+    util.succ 'test', 'app'
+    util.warn 'test', 'app'
+    util.info 'test', 'app'
+    util.error 'test', 'app'

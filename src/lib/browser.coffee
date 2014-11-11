@@ -23,15 +23,14 @@ Class mixins
     require './browser/dom-actions'
 ]
 
-#console.log BrowserCommands
+# @TODO: CLEANUP!!1
 
 class Browser extends util.Modules.Logger
     uid:      null
     client:   null
     server:   null
 
-    #@Matcher = extend {}, $match
-
+    @include util.Modules.Deferred
     @include BrowserContext
     @include BrowserCommands
     @include BrowserDOMActions
@@ -63,7 +62,7 @@ class Browser extends util.Modules.Logger
             @info 'autostart disabled, waiting for start'
 
     start: ->
-        @stopSeleniumPingbacks()
+        # @stopSeleniumPingbacks()
         @info "starting, uid: #{@uid}"
         @server.start()
         @_checkCapabilities()
@@ -71,6 +70,7 @@ class Browser extends util.Modules.Logger
         @client = new $selenium.webdriver.Builder()
                                 .usingServer @server.address()
                                 .withCapabilities @option('capabilities')
+                                .setLoggingPrefs {browser: @option('browserLog')}
                                 .build()
 
         if @isFullscreen()
@@ -93,111 +93,6 @@ class Browser extends util.Modules.Logger
             @_context.then cb
         @
 
-    ###
-    @alias #walk
-    ###
-    # go: ->
-    #     @walk arguments
-
-    ###
-    Waits desired time and executes callback
-    ###
-    # wait: (cb, time=1000) ->
-    #     @_setContext @client.wait(cb, time)
-    #     @
-
-    ###
-    Clicks at links, buttons etc.
-    If `element` not passed as argument, uses one stored as this._context
-    ###
-    # click: (ele) ->
-    #     @info "ordered to click on element"
-
-    #     if not ele?
-    #         @info "no element provided, using stored context"
-    #         ctx = @_getContext()
-    #         ctx.click()
-    #     else
-    #         @_setContext @_find(ele).click()
-    #     @
-
-    ###
-    @todo
-    ###
-    submit: (id) ->
-        throw (new $err.NotImplemented 'method not implemented')
-
-    ###
-    Returns current location
-    ###
-    location: (cb) ->
-        if cb?
-            return @client.getCurrentUrl()
-                .then cb
-        @client.getCurrentUrl()
-
-    ###
-    Checks if ele exists or not and executes callbacks
-    Best use with Browser::wait()
-    ###
-    exists: (ele, cb) ->
-        @info "checking if element '#{ele}' exists"
-        if cb?
-            return @client.isElementPresent(@_by(ele)).then (res) ->
-                cb res
-        @client.isElementPresent(@_by(ele))
-
-    ###
-    Waits for element to present
-    ###
-    waitFor: (ele, cb) ->
-        @info "waiting for element '#{ele}' to appear"
-        @client.wait =>
-            @exists(ele).then (e) ->
-                e
-        , @option 'timeout'
-        .then ->
-            cb true
-        .thenCatch =>
-            @warn "called #waitFor for element, failed to locate one"
-            cb false
-        @
-
-    ###
-    Fills field with value
-    ###
-    fill: (field, value) ->
-        @_find(field).then (ele) ->
-            ele.clear()
-            ele.sendKeys value
-        @
-
-    ###
-    @todo instance methods
-    ###
-    url: ->
-        @location arguments
-
-    title: (cb) ->
-        if cb?
-            return @client.getTitle().then(cb)
-        @_setContext @client.getTitle()
-        @
-
-    ###
-    end of instance methods
-    ###
-
-    # sleep: (cb, time) ->
-    #     time ?= @option 'timeout'
-    #     @info "ordered to sleep for #{time}ms"
-    #     @client.sleep(time).then =>
-    #         @succ "was asleep for #{time}ms"
-    #         cb() if cb?
-    #     @
-
-    screenshot: ->
-        throw (new $err.NotImplemented 'method not implemented')
 
     # find: (sel)  ->
     #     @info "ordered to find element '#{sel}'"
@@ -278,10 +173,11 @@ class Browser extends util.Modules.Logger
     _initConfig: (config) ->
         config = _.defaults config,
             browser: 'firefox'
-            selenium: {}
+            browserLog: 'SEVERE'
             verbose: no
             timeout: 5000
-            fullscreen: no    
+            fullscreen: no
+            selenium: {}
         config.selenium = _.defaults config.selenium,
             autostart: yes   
             path: process.cwd()

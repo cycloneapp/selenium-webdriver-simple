@@ -3,19 +3,19 @@
   "description": "Wrapper for Selenium WebDriver that makes life easier",
   "author": "CycloneApp Team & friends",
   "main": "index.js",
-  "version": "0.0.3-pl20",
+  "version": "0.0.3-alpha+pl21",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git://github.com/cycloneapp/selenium-webdriver-simple.git"
   },
   "dependencies": {
-    "selenium-webdriver": "*",
-    "glob": "*",
-    "nexpect": "^0.4.2",
     "common-errors": "^0.4.17",
     "dateformat": "^1.0.8",
-    "lodash": "*"
+    "glob": "*",
+    "lodash": "*",
+    "selenium-webdriver": "*",
+    "vow": "^0.4.7"
   },
   "devDependencies": {
     "cake": "*",
@@ -26,7 +26,7 @@
     "mocha": "^2.0.1"
   },
   "scripts": {
-    "prepublish": "./node_modules/.bin/cake compile || echo 'Compilation failed, check your sources for errors'",
+    "prepublish": "./node_modules/.bin/cake compile",
     "test": "./node_modules/.bin/cake test"
   }
 }

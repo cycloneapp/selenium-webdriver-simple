@@ -1,4 +1,5 @@
 options = require('selenium-webdriver').WebDriver.Options
+_       = require 'lodash'
 
 BrowserCommands =
     walk: (url) ->
@@ -14,6 +15,15 @@ BrowserCommands =
         options.deleteAllCookies()
         @
 
+    ###
+    Returns current location
+    ###
+    location: (cb) ->
+        if cb?
+            return @client.getCurrentUrl()
+                .then cb
+        @client.getCurrentUrl()
+
     fullscreen: ->
         @info "maximizing browser window"
         @manager().window().maximize()
@@ -27,7 +37,19 @@ BrowserCommands =
         @client.manage()
 
     logs: ->
-        @manager.logs()
+        @manager().logs()
+
+    errors: ->
+        _defer = @defer()
+
+        @logs().get('browser').then (logs) ->
+            if logs.length > 0
+                logs = _.pluck _.where(logs, {level: {name: 'SEVERE'}}), 'message'
+                _defer.resolve logs
+            else
+                _defer.resolve []
+
+        _defer.promise()
 
     quit: ->
         if @client?
