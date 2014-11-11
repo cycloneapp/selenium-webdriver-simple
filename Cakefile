@@ -30,6 +30,13 @@ _execc = (name, args = [], cb = (->), opts = {}) ->
         else
             cb()
     _child.stdout.pipe process.stdout
+    _child
+
+_execWithExit = (name, args = [], cb = (->), opts = {}) ->
+    _child = _execc name, args, cb, opts
+    _child.on 'close', (c) ->
+        if c isnt 0
+            process.exit 1
 
 _compile = (args...) ->
     dev = if util.isBool(util.first(args))
@@ -145,5 +152,5 @@ task 'testrun', 'Ensure Selenium server can start', (opts) ->
     , 5000
 
 task 'test', 'Run tests', ->
-    _execc './node_modules/.bin/mocha'
+    _execWithExit './node_modules/.bin/mocha'
 
