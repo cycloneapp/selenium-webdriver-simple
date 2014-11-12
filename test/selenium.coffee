@@ -3,55 +3,111 @@ should   = require('chai').should()
 Selenium = require '../lib/selenium'
 Browser  = require '../lib/browser'
 
-describe 'Selenium tests', ->
-    describe 'SeleniumServer', ->
-        it 'must initialize with default configuration', (done) ->
-            try
-                @selenium = new Selenium
-            catch e
-                # ...
-            finally
-                @selenium.should.not.be.undefined
-                @selenium.should.have.property 'configured'
-                @selenium.configured.should.be.ok
+[it, describe, before, after, beforeEach, afterEach] = Browser.useWdts()
 
-            done()
+describe 'Selenium viability tests', ->
+    describe 'SeleniumServer', ->
+        it 'must initialize with default configuration', ->
+            _try = =>
+                @selenium = new Selenium
+
+            _try.should.not.throw Error
+            @selenium.should.not.be.undefined
+            @selenium.should.have.property 'configured'
+            @selenium.configured.should.be.ok
+
             
-        it 'should fail on init if no selenium-server JAR is found', (done) ->
-            _e = null
-            try
+        it 'should fail on init if no selenium-server JAR is found', ->
+            _try = =>
                 @selenium = new Selenium './not_existent_path'
-            catch e
-                _e = e
-            finally
-                _e.should.be.ok
-                _e.should.be.instanceof Error
-                
-            done()
+
+            _try.should.throw Error
 
         after ->
             @selenium.stop() if @selenium.isRunning()
-        it 'should start with default configuration', (done) ->
-            try
+        it 'should start with default configuration', ->
+            _try = =>
                 @selenium = new Selenium
                 @selenium.start()
-            catch e
-                # ...
-            finally
-                @selenium.should.not.be.undefined
-                @selenium.isRunning().should.be.ok
+            
+            _try.should.not.throw Error
+            @selenium.should.not.be.undefined
+            @selenium.isRunning().should.be.ok
 
-            done()
+    describe 'SWS Browser', ->
+        it 'must initialize with default configuration', ->
+            _try = =>
+                @browser = new Browser config.browser, config.ext_opts
 
-    describe 'Browser', ->
-        it 'must initialize with default configuration', (done) ->
-            browser = new Browser config
-            browser.should.not.be.undefined
-            browser.should.have.property 'opts'
-            browser.opts.should.not.be.null
-            browser.should.have.property 'uid'
-            browser.uid.should.not.be.null
+            _try.should.not.throw Error
+            @browser.should.not.be.undefined
+            @browser.should.have.property 'opts'
+            @browser.opts.should.not.be.null
+            @browser.should.have.property 'uid'
+            @browser.uid.should.not.be.null
         
-            done()
-        
- 
+        describe '-> Browsers', ->
+            describe '-> PhantomJS startup tests', ->
+                before ->
+                    _config = _.extend config, {browser: 'phantomjs'}
+                    @browser = new Browser _config.browser, _config.ext_opts
+                    return
+
+                it 'should check if PhantomJS runtime is usable', ->
+                    _try = do(browser = @browser) ->
+                        ->
+                            browser.start()
+                            browser.walk 'http://google.com'
+                            browser.reset()
+                            browser.quit()
+
+                    _try.should.not.throw Error
+
+            describe '-> Chrome startup tests (via ChromeDriver)', ->
+                before ->
+                    _config = _.extend config, {browser: 'chrome'}
+                    @browser = new Browser _config.browser, _config.ext_opts
+                    return
+
+                it 'should check if Chrome runtime is usable', ->
+                    _try = =>
+                        @browser.start()
+                        @browser.walk 'http://google.com'
+                        @browser.reset()
+                        @browser.quit()
+
+                    _try.should.not.throw Error
+                    
+
+            describe '-> Firefox startup tests', ->
+                before ->
+                    _config = _.extend config, {browser: 'firefox'}
+                    @browser = new Browser _config.browser, _config.ext_opts
+                    return
+
+                it 'should check if Firefox runtime is usable', ->
+                    _try = =>
+                        @browser.start()
+                        @browser.walk 'http://google.com'
+                        @browser.reset()
+                        @browser.quit()
+
+                    _try.should.not.throw Error
+
+            describe '-> Opera startup tests', ->
+                before ->
+                    _config = _.extend config, {browser: 'opera'}
+                    @browser = new Browser _config.browser, _config.ext_opts
+                    return
+
+                it 'should check if Opera runtime is usable', ->
+                    _try = =>
+                        @browser.start()
+                        @browser.walk 'http://google.com'
+                        @browser.reset()
+                        @browser.quit()
+
+                    _try.should.not.throw Error            
+
+                
+                

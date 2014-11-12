@@ -20,10 +20,12 @@
   "devDependencies": {
     "cake": "*",
     "chai": "^1.10.0",
+    "chai-as-promised": "^4.1.1",
     "coffee-script": "*",
     "comment-macros": "*",
     "flour": "*",
-    "mocha": "^2.0.1"
+    "mocha": "^2.0.1",
+    "mocha-clean": "^0.4.0"
   },
   "scripts": {
     "prepublish": "./node_modules/.bin/cake compile",

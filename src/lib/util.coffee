@@ -151,6 +151,12 @@ exports.Module = class Module
 
 exports.Modules = {}
 
+exports.Modules.Extendable =
+    __extends: (klass) ->
+        @:: = _.create klass.prototype,
+            'constructor': @::constructor
+            '__super__': klass::
+
 ###
 @todo Make it class
 ###

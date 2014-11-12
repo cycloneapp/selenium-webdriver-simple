@@ -54,7 +54,7 @@ class Matcher
         switch type
             when 'tag' then wd.By.tagName
             when 'id' then wd.By.id
-            when 'css' then wd.By.css
+            when 'css' then wd.By.className
             when 'cssQuery' then wd.By.css
             else wd.By.name
 

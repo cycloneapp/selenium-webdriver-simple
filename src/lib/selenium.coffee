@@ -19,11 +19,17 @@ SeleniumConfiguration =
         @configured = true
         @
 
-    isCapable: (browser) ->
+    haveBrowser: (browser) ->
+        browser in @knownBrowsers
+
+    haveCapabilities: (browser) ->
         Selenium.webdriver.Capabilities[browser]? and typeof Selenium.webdriver.Capabilities[browser] is 'function'
 
+    defaultCapabilities: ->
+        
+
     getCapabilities: (browser) ->
-        if @isCapable browser
+        if @haveCapabilities browser
             return Selenium.webdriver.Capabilities[browser]()
         {}
 
@@ -98,6 +104,9 @@ class Selenium extends util.Modules.Logger
     @include SeleniumJarLocator
     @include SeleniumRunner
     @include SeleniumVerbose
+
+    knownBrowsers: do (browsers = @webdriver.Browser) ->
+        _.values browsers
 
     constructor: (@path = "#{__dirname}/../vendor", @port = Selenium.portprober.findFreePort(), @ext_args = {}) ->
         super @logNs

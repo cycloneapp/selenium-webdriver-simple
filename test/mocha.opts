@@ -2,5 +2,6 @@
 --async-only
 -u bdd
 -R spec
+-r mocha-clean
 -r lodash
 --compilers coffee:coffee-script/register

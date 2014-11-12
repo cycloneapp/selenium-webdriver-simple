@@ -3,9 +3,9 @@ should = require('chai').should()
 
 describe 'Simple tests', ->
     describe 'Configuration', ->
-        it 'should validate config', (done) ->
+        it 'should validate config', (d) ->
             config.should.be.an 'object'
-            done()
+            d()
 
         it 'should ensure browser property exist', (d) ->
             config.should.have.property 'browser'

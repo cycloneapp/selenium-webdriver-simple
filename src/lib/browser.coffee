@@ -25,6 +25,9 @@ Class mixins
 
 # @TODO: CLEANUP!!1
 
+###
+@package Browser
+###
 class Browser extends util.Modules.Logger
     uid:      null
     client:   null
@@ -45,12 +48,21 @@ class Browser extends util.Modules.Logger
     ###
     _context: null
 
+    ###
+    @var object Browser.Errors Collection of exception classes, provided by `common-errors` package
+    ###
     @Errors = $err
 
-    constructor: (config = {}) ->
+    ###
+    @param string this.browser Name of browser that will be used
+    @param object ext_opts Additional runtime options 
+    ###
+    constructor: (@browser = 'firefox', ext_opts = {}) ->
         super()
 
-        @_init config
+        @
+            .validateOpts()
+            ._init ext_opts
 
         if @isAutostart()
             @info 'autostart'
@@ -61,20 +73,27 @@ class Browser extends util.Modules.Logger
         else
             @info 'autostart disabled, waiting for start'
 
+    validateOpts: ->
+        if not @browser? or not _.isString(@browser)
+            @browser = 'firefox'
+        @
+
     start: ->
+        # @todo: Keep-alive Pingbacks - think about it
         # @stopSeleniumPingbacks()
         @info "starting, uid: #{@uid}"
         @server.start()
-        @_checkCapabilities()
+        #@_checkCapabilities()
 
         @client = new $selenium.webdriver.Builder()
                                 .usingServer @server.address()
-                                .withCapabilities @option('capabilities')
-                                .setLoggingPrefs {browser: @option('browserLog')}
+                                .withCapabilities @.option('browserCapabilities')
+                                .setLoggingPrefs {browser: @.option('browserLog')}
                                 .build()
 
         if @isFullscreen()
             @fullscreen()
+
 
     ###
     Launches browser and opens provided URL
@@ -91,6 +110,12 @@ class Browser extends util.Modules.Logger
     next: (cb) ->
         if @_context isnt undefined and @_context.then?
             @_context.then cb
+        @
+
+    then: (onFullfill, onRejected, onNotified) ->
+        if @_context?
+            @_context.then onFullfill, onRejected, onNotified
+            #@_setContext 
         @
 
 
@@ -169,10 +194,11 @@ class Browser extends util.Modules.Logger
             ._initConfig(config)
             ._initLogger()
             ._initSelenium()
+
+        @.obtainCapabilities()
             
     _initConfig: (config) ->
         config = _.defaults config,
-            browser: 'firefox'
             browserLog: 'SEVERE'
             verbose: no
             timeout: 5000
@@ -203,27 +229,38 @@ class Browser extends util.Modules.Logger
     #         return @client.findElement _by(ele)
     #     @client.findElement @_by(ele)
 
-    _by: (ele) ->
-        console.log @Matcher.detect(ele)(@_cleanSelector(ele))
-        @Matcher.detect(ele)(@_cleanSelector(ele))
+    # _by: (ele) ->
+    #     console.log @Matcher.detect(ele)(@_cleanSelector(ele))
+    #     @Matcher.detect(ele)(@_cleanSelector(ele))
+    obtainCapabilities: ->
+        @browser = @option('browser') ? @browser
 
-    _checkCapabilities: ->
-        _browser = @option 'browser' ? 'firefox'
-        
-        if @server.isCapable _browser
-            @option 'browser', _browser
+        capabilities = if @server.haveCapabilities @browser
+            @server.getCapabilities @browser
         else
-            @option 'browser', 'firefox'
+            # unless @server.haveBrowser @browser
+            #     @browser = 'firefox'
+            @server.defaultCapabilities()
 
-        @info "determined to be capable of '#{@option('browser')}'"
+        @option 'browserCapabilities', capabilities
 
-        @option 'capabilities', @server.getCapabilities(@option('browser'))
+    # _checkCapabilities: ->
+    #     _browser = @option 'browser' ? 'firefox'
+        
+    #     if @server.isCapable _browser
+    #         @option 'browser', _browser
+    #     else
+    #         @option 'browser', 'firefox'
 
-    _injectInstanceMethods: ->
-        @manager = =>
-            @client.manage()
-        @logs = =>
-            @manager().logs()
+    #     @info "determined to be capable of '#{@option('browser')}'"
+
+    #     @option 'capabilities', @server.getCapabilities(@option('browser'))
+
+    # _injectInstanceMethods: ->
+    #     @manager = =>
+    #         @client.manage()
+    #     @logs = =>
+    #         @manager().logs()
 
     # _getContext: ->
     #     @_context
@@ -240,7 +277,21 @@ class Browser extends util.Modules.Logger
 
 Browser.useWdts = (suite) ->
     suite ?= require('selenium-webdriver/testing')
-    [it, describe] = [suite.it, suite.describe]
-    [it, describe]
+    [
+        it
+        describe
+        before
+        after
+        beforeEach
+        afterEach
+    ] = [
+        suite.it
+        suite.describe
+        suite.before
+        suite.after
+        suite.beforeEach
+        suite.afterEach
+    ]
+    [it, describe, before, after, beforeEach, afterEach]
 
 module.exports = Browser

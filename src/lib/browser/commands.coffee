@@ -11,8 +11,9 @@ BrowserCommands =
 
     reset: ->
         @info "performing session reset"
-        options = new options(@client)
-        options.deleteAllCookies()
+
+        _options = new options(@client)
+        _options.deleteAllCookies()
         @
 
     ###

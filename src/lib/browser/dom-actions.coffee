@@ -98,8 +98,8 @@ DOMActions =
         @_setContext _ele
 
     _by: (sel) ->
-        @debug @Matcher.detect(ele)(@_cleanSelector(sel))
-        @Matcher.detect(ele)(@_cleanSelector(sel))
+        @debug @Matcher.detect(sel)(@_cleanSelector(sel))
+        @Matcher.detect(sel)(@_cleanSelector(sel))
 
     # @todo: Fix it more properly, possibly move method to Browser.Matcher and do cleanup only on `name` case
     _cleanSelector: (sel) ->
