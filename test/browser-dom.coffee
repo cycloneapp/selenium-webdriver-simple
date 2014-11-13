@@ -1,6 +1,6 @@
 helper = (require './suite/browser-helper')(cap: true)
 
-{config, chai, Browser, suite} = helper
+{config, chai, Browser, suite, faker} = helper
 [it, describe, before, after, beforeEach, afterEach] = suite
 
 should = chai.should()
@@ -20,14 +20,25 @@ describe 'SWS Browser', ->
         return
     describe 'DOM actions', ->
         describe 'Elements find methods', ->
-            it 'should find asked element', ->
+            it 'should fulfill promise for designated element', ->
                 @browser.walk 'http://google.com'
                 @browser.waitFor '[name=q]', (r) ->
                     r.should.be.true
-                @browser.find('.gbqfif').should.not.be.rejectedWith Error
+                @browser
+                    .find('.gbqfif')
+                    .should.be.fulfilled
+                    .and
+                    .should.not.be.rejected
 
-            it 'should fail when searching for not existing element', ->
+            it 'should reject element promise when searching for not existing element', ->
                 @browser.walk 'http://google.com'
                 @browser
                     .find '#asda'
-                @browser._getContext().should.be.rejected
+                    .should.be.rejected
+
+            before ->
+                @searchText = ''
+            it 'should open Google main page and search for generated text (i.e. input text and click search button)', ->
+                @browser.walk 'http://google.com'
+
+                

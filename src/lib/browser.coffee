@@ -33,7 +33,7 @@ class Browser extends util.Modules.Logger
     client:   null
     server:   null
 
-    @include util.Modules.Deferred
+    @include util.Modules.Deferrable
     @include BrowserContext
     @include BrowserCommands
     @include BrowserDOMActions

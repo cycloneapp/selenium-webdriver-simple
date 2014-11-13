@@ -91,11 +91,22 @@ DOMActions =
         @_setContext @client.getTitle()
 
     _find: (ele, _by) ->
+        _defer = @.defer()
         _ele = if _by?
             @client.findElement _by(ele)
         else
             @client.findElement @_by(ele)
-        @_setContext _ele
+
+        _ele
+            .then (e) ->
+                _defer.resolve e
+            .thenCatch (e) ->
+                _defer.reject e
+
+        _promise = _defer.promise()
+
+        @_setContext _promise
+        _promise
 
     _by: (sel) ->
         @debug @Matcher.detect(sel)(@_cleanSelector(sel))

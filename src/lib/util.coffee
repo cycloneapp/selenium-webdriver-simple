@@ -76,10 +76,10 @@ exports.prependTime = prependTime = (s, colorful = true) ->
 __label = (l) ->
     "\x1b[;38;5;31m\u001b[1m#{l}\u001b[22m\x1b[0m"
 
-exports.error = _error = (m, label = 'Error') ->
+exports.error = _error = (m, label = '') ->
     put "\x20#{__label(label)}\x20\u001b[31m\u001b[1merror\u001b[39m\u001b[22m\x20#{m}", 'log'
 
-exports.info = _info = (m, label = 'Notice') ->
+exports.info = _info = (m, label = '') ->
     put "\x20#{__label(label)}\x20\u001b[34m\u001b[1minfo\u001b[39m\u001b[22m\x20#{m}"
 
 exports.warn = _warn = (m, label = '') ->
@@ -95,6 +95,9 @@ exports.debug = _debug = (m, label = '') ->
 exports.log = _log = (m, label = '') ->
     put "\x20#{label}\x20#{m}"
 
+###
+@todo: Deprecate this block in favor of using lodash methods
+###
 exports.isArray = isArray = (_in) ->
     if Array.isArray isnt undefined
         Array.isArray _in
@@ -117,7 +120,9 @@ exports.isEmpty = isEmpty = (_in) ->
     for key of _in  
         return false if Object::hasOwnProperty.call _in, key
     true
-
+###
+---
+###
 
 exports.flatout = (_in) ->
     if isArray _in
@@ -136,6 +141,9 @@ exports.glob = extend exports, glob
 
 exports.Module = class Module
     @extend: (obj) ->
+        if not obj?
+            return
+
         for key, value of obj when key not in ['extended', 'included']
             @[key] = value
 
@@ -143,6 +151,9 @@ exports.Module = class Module
         @
 
     @include: (obj) ->
+        if not obj?
+            return
+            
         for key, value of obj when key not in ['extended', 'included']
             @::[key] = value
 
@@ -151,15 +162,12 @@ exports.Module = class Module
 
 exports.Modules = {}
 
-exports.Modules.Extendable =
-    __extends: (klass) ->
-        @:: = _.create klass.prototype,
-            'constructor': @::constructor
-            '__super__': klass::
+# exports.Modules.Extendable =
+#     __extends: (klass) ->
+#         @:: = _.create klass.prototype,
+#             'constructor': @::constructor
+#             '__super__': klass::
 
-###
-@todo Make it class
-###
 exports.Modules.Configuration = class Configuration extends Module
     constructor: ->
         @opts = {}
@@ -242,9 +250,32 @@ exports.Modules.Logger = class Logger extends Configuration
         _debug msg, @logPrefix()
 
 
-exports.Modules.Deferred =
+exports.Modules.Deferrable =
     defer: ->
         new vow.Deferred()
+
+exports.Modules.Promisable =
+    included: ->
+
+    isFulfilled: ->
+
+    isRejected: ->
+
+    isResolved: ->
+
+    then: ->
+
+    catch: ->
+
+    fail: ->
+
+    always: ->
+
+    progress: ->
+
+    done: ->
+
+    delay: ->
 
 globals = ['glob', 'put', 'isArray', 'isBool', 'isNum', 'isString', 'isEmpty', 'extend', 'include', 'merge']
 
