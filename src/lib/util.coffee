@@ -153,7 +153,7 @@ exports.Module = class Module
     @include: (obj) ->
         if not obj?
             return
-            
+
         for key, value of obj when key not in ['extended', 'included']
             @::[key] = value
 
@@ -254,28 +254,63 @@ exports.Modules.Deferrable =
     defer: ->
         new vow.Deferred()
 
+Consts = {}
+Consts.PROMISE_STATUS =
+    PENDING: 0
+    RESOLVED: 1
+    FULFILLED: 2
+    REJECTED: 3
+
 exports.Modules.Promisable =
     included: ->
+        @::_promise = vow.defer().promise()
+        @::_status = Consts.PROMISE_STATUS.PENDING
 
-    isFulfilled: ->
+    isPromise: (promise = @_promise) ->
+        vow.isPromise promise
 
-    isRejected: ->
+    isFulfilled: (promise = @_promise) ->
+        vow.isFulfilled promise if @.isPromise promise
 
-    isResolved: ->
+    isRejected: (promise = @_promise) ->
+        vow.isRejected promise if @.isPromise promise
 
-    then: ->
+    isResolved: (promise = @_promise) ->
+        vow.isResolved promise if @.isPromise promise
 
-    catch: ->
+    then: (onFulfilled, onRejected, onNotify) ->
+        vow.when @_promise, onFulfilled, onRejected, onNotify
 
-    fail: ->
+    catch: (onRejected) ->
+        @.fail onRejected
 
-    always: ->
+    fail: (onRejected) ->
+        vow.fail @_promise, onRejected
 
-    progress: ->
+    always: (onResolve) ->
+        vow.always @_promise, onResolve
 
-    done: ->
+    progress: (onProgress) ->
+        vow.progress @_promise, onProgress
 
-    delay: ->
+    done: (onFulfilled, onRejected, onNotify) ->
+        vow.done @_promise, onFulfilled, onRejected, onNotify
+
+    delay: (delay) ->
+        vow.delay @_promise, delay
+
+    _fulfill: (val) ->
+        vow.fulfill val
+
+    _reject: (reason) ->
+        vow.reject reason
+
+    _resolve: (val) ->
+        vow.resolve val
+
+    _valueOf: ->
+        return @_promise.valueOf() if @_promise? and @.isPromise()
+
 
 globals = ['glob', 'put', 'isArray', 'isBool', 'isNum', 'isString', 'isEmpty', 'extend', 'include', 'merge']
 

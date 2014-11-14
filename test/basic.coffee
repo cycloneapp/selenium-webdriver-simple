@@ -1,4 +1,4 @@
-config = require './suite/config'
+config = (require './suite/config').ext_opts
 should = require('chai').should()
 
 describe 'Simple tests', ->
@@ -7,11 +7,11 @@ describe 'Simple tests', ->
             config.should.be.an 'object'
             d()
 
-        it 'should ensure browser property exist', (d) ->
-            config.should.have.property 'browser'
+        it 'must not find deprecated "browser" property', (d) ->
+            config.should.not.have.property 'browser'
             d()
 
-        it 'should ensure selenium property and some are exists', (d) ->
+        it 'should ensure selenium property and some others are exists', (d) ->
             config.should.have.property 'selenium'
             config.selenium.path.should.not.be.undefined 
             d()

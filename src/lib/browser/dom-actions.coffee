@@ -1,4 +1,28 @@
 DOMActions =
+    ElementMethods: [
+        'clear',
+        'click',
+        'findElement',
+        'findElements',
+        'getAttribute',
+        'getCssValue',
+        'getDriver',
+        'getId',
+        'getInnerHtml',
+        'getLocation',
+        'getOuterHtml',
+        'getSize',
+        'getTagName',
+        'getText',
+        'isDisplayed',
+        'isElementPresent',
+        'isEnabled',
+        'isSelected',
+        'schedule_',
+        'sendKeys',
+        'submit' 
+    ]
+
     find: (sel) ->
         @_find sel
 
@@ -6,11 +30,9 @@ DOMActions =
     findAll: (sel) ->
         throw (new $err.NotImplemented 'method not implemented')
 
-    # @todo: implement
     findByName: (name) ->
         @_find "[name=#{name}]", @Matcher.by('css')
 
-    # @todo: implement
     findByText: (text) ->
         @_find text, @Matcher.by('partialText')
 
@@ -33,14 +55,25 @@ DOMActions =
         throw (new $err.NotImplemented 'method not implemented')
 
     submit: (ele) ->
-        @_setContext @_resolveElement(ele).submit()
+        @_resolveElement(ele).submit()
 
     ###
     Clicks at links, buttons etc.
     If `element` not passed as argument, uses one stored as this._context
     ###
     click: (ele) ->
-        @_setContext @_resolveElement(ele).click()
+        _ele = @_resolveElement ele
+
+        if @.isPromise _ele
+            _ele
+                .then \
+                    (e) ->
+                        e.click()
+                    ,
+                    (err) ->
+                        @error err
+
+
 
     ###
     Fills field with value
@@ -91,35 +124,42 @@ DOMActions =
         @_setContext @client.getTitle()
 
     _find: (ele, _by) ->
-        _defer = @.defer()
-        _ele = if _by?
+        @._context = if _by?
             @client.findElement _by(ele)
         else
-            @client.findElement @_by(ele)
+            @client.findElement @._by(ele)    
 
-        _ele
-            .then (e) ->
-                _defer.resolve e
-            .thenCatch (e) ->
-                _defer.reject e
+        @._context
+            .then (e) =>
+                @._promise = @._fulfill e
+            .thenCatch =>
+                @._promise = @._reject "Element '#{ele}' not found"
 
-        _promise = _defer.promise()
-
-        @_setContext _promise
-        _promise
+        @
 
     _by: (sel) ->
-        @debug @Matcher.detect(sel)(@_cleanSelector(sel))
+        @.debug @Matcher.detect(sel)(@._cleanSelector(sel))
         @Matcher.detect(sel)(@_cleanSelector(sel))
 
     # @todo: Fix it more properly, possibly move method to Browser.Matcher and do cleanup only on `name` case
     _cleanSelector: (sel) ->
         sel.replace /^[\#\.\>]/g, ''
 
+    # _resolveElement: (ele) ->
+    #     if ele?
+    #         @._find ele
+    #     else
+    #         @._getContext()    
     _resolveElement: (ele) ->
-        if ele?
-            @_find ele
+        unless ele?
+            if @.isPromise() is true
+                ele = @._promise
+            else
+                return @._reject "Cannot resolve element without element selector"
         else
-            @_getContext()    
+            ele = @._find ele
+
+        ele
+
 
 module.exports = DOMActions

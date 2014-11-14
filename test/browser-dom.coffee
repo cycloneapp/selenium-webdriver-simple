@@ -40,5 +40,7 @@ describe 'SWS Browser', ->
                 @searchText = ''
             it 'should open Google main page and search for generated text (i.e. input text and click search button)', ->
                 @browser.walk 'http://google.com'
+                @browser.fill 'test'
+
 
                 

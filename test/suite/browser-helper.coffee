@@ -2,7 +2,7 @@ config  = require './config'
 chai    = require 'chai'
 cap     = require 'chai-as-promised'
 browser = require '../../lib/browser'
-
+faker   = require 'faker'
 
 module.exports = (opts = {}) ->
     opts = _.defaults opts,
@@ -16,6 +16,7 @@ module.exports = (opts = {}) ->
         'config':  config
         'chai':    chai
         'Browser': browser
+        'faker': faker
 
     if opts.wdts is yes
         ret.suite = browser.useWdts()
