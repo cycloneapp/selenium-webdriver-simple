@@ -17,11 +17,11 @@ describe 'Selenium viability tests', ->
             @selenium.configured.should.be.ok
 
             
-        it 'should fail on init if no selenium-server JAR is found', ->
+        it 'should not fail on init if wrong path for selenium-server JAR defined', ->
             _try = =>
                 @selenium = new Selenium './not_existent_path'
 
-            _try.should.throw Error
+            _try.should.not.throw Error
 
         after ->
             @selenium.stop() if @selenium.isRunning()

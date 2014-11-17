@@ -270,19 +270,20 @@ exports.Modules.Promisable =
         vow.isPromise promise
 
     isFulfilled: (promise = @_promise) ->
-        vow.isFulfilled promise if @.isPromise promise
+        vow.isFulfilled promise# if @.isPromise promise
 
     isRejected: (promise = @_promise) ->
-        vow.isRejected promise if @.isPromise promise
+        vow.isRejected promise
 
     isResolved: (promise = @_promise) ->
-        vow.isResolved promise if @.isPromise promise
+        vow.isResolved promise# if @.isPromise promise
 
     then: (onFulfilled, onRejected, onNotify) ->
+        @._adoptPromise @._context
         vow.when @_promise, onFulfilled, onRejected, onNotify
 
     catch: (onRejected) ->
-        @.fail onRejected
+        @.then null, onRejected
 
     fail: (onRejected) ->
         vow.fail @_promise, onRejected
@@ -310,6 +311,26 @@ exports.Modules.Promisable =
 
     _valueOf: ->
         return @_promise.valueOf() if @_promise? and @.isPromise()
+
+    _wrapPromise: (promise) ->
+        @._adoptPromise promise, yes
+        @._setContext promise
+        @
+
+    _adoptPromise: (promise, isNotAPlusCompliant = no) ->
+        if isNotAPlusCompliant \
+            and promise.then? \
+            and promise.thenCatch? 
+                promise
+                    .then (e) =>
+                        @._promise = @._fulfill e
+                    .thenCatch (err) =>
+                        @._promise = @._reject err
+        else
+            if @.isPromise(promise) and @.isResolved(promise)
+                @._promise = vow.cast promise
+
+        @._promise
 
 
 globals = ['glob', 'put', 'isArray', 'isBool', 'isNum', 'isString', 'isEmpty', 'extend', 'include', 'merge']

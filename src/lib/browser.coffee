@@ -33,8 +33,9 @@ class Browser extends util.Modules.Logger
     client:   null
     server:   null
 
-    @include util.Modules.Deferrable
     @include BrowserContext
+    @include util.Modules.Deferrable
+    @include util.Modules.Promisable
     @include BrowserCommands
     @include BrowserDOMActions
     ###
@@ -112,11 +113,11 @@ class Browser extends util.Modules.Logger
             @_context.then cb
         @
 
-    then: (onFullfill, onRejected, onNotified) ->
-        if @_context?
-            @_context.then onFullfill, onRejected, onNotified
-            #@_setContext 
-        @
+    # then: (onFullfill, onRejected, onNotified) ->
+    #     if @_context?
+    #         @_context.then onFullfill, onRejected, onNotified
+    #         #@_setContext 
+    #     @
 
 
     # find: (sel)  ->
