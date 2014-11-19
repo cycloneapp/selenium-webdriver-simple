@@ -34,6 +34,9 @@ DOMActions =
     findByName: (name) ->
         @_find "[name=#{name}]", @Matcher.by('css')
 
+    findById: (id) ->
+        @_find id, @Matcher.by('id')
+
     findByText: (text) ->
         @_find text, @Matcher.by('partialText')
 
@@ -59,10 +62,7 @@ DOMActions =
         @_resolveElement(ele).submit()
 
     id: (ele) ->
-        @_resolveElement(ele).then (e) ->
-            @._wrapPromise e.getId()
-
-
+        @.attr ele, 'id'
     
     # @todo: implement
     innerHTML: (ele) ->
@@ -72,8 +72,14 @@ DOMActions =
 
     # @todo: implement
     text: (ele) ->
+        _defer = @.defer()
         @_resolveElement(ele).then (e) =>
-            @._wrapPromise e.getText()
+            e.getText()
+                .then (t) ->
+                    _defer.resolve t
+                .thenCatch (e) ->
+                    _defer.reject e
+        _defer.promise()
 
     ###
     @notice Not chainable!
@@ -89,18 +95,40 @@ DOMActions =
 
     ###
     @notice Not chainable!
+    @summary [covered]
     ###
     visible: (ele) ->
         @._resolveBool ele, 'isDisplayed'
 
-    # @todo: implement
+    ###
+    @description Get element attribute
+    @param {string} [ele] Element selector to lookup
+    @param {string} attr Attribute to get
+    @summary [covered]
+    @returns Promise
+    ###
     attr: (ele, attr) ->
+        if not attr? and ele?
+            # Element not specified, but attr was
+            [ele, attr] = [attr, ele]
+
+        _defer = @.defer()
+        @_resolveElement(ele).then (e) ->
+            e.getAttribute(attr)
+                .then (v) ->
+                    _defer.resolve v
+                .thenCatch (e) ->
+                    _defer.reject e
+        _defer.promise()
 
     # @todo: implement
     cssValue: (ele, option) ->
 
     ###
+    @description Clears the input text from element
+    @returns this
     @notice It 'reloads' context, meaning it leave context belonging to the same element, but reassing variable
+    @summary [chainable, covered]
     ###
     clear: (ele) ->
         @_resolveElement(ele).then (e) =>
@@ -108,8 +136,9 @@ DOMActions =
         @
 
     ###
-    Clicks at links, buttons etc.
-    If `element` not passed as argument, uses one stored as this._context
+    @description Clicks at links, buttons etc. If `element` not passed as argument, uses one stored as this._context
+    @returns this
+    @summary [chainable, covered]
     ###
     click: (ele) ->
         _ele = @_resolveElement ele
@@ -127,8 +156,10 @@ DOMActions =
 
 
     ###
-    Fills field with value
-    @warn This method does not changes context!
+    @description Fills field with value
+    @notice This method does not changes context!
+    @returns this
+    @summary [chainable, covered]
     ###
     fill: (args...) ->
         [ele, val] = args
@@ -158,8 +189,9 @@ DOMActions =
         @
 
     ###
-    Checks if ele exists or not and executes callbacks
-    Best use with Browser::wait()
+    @descriprion Checks if ele exists or not and executes callbacks. Best use with Browser::wait()
+    @returns this
+    @summary [chainable, covered]
     ###
     exists: (ele) ->
         @info "checking if element '#{ele}' exists"
@@ -168,11 +200,13 @@ DOMActions =
     ###
     Waits for element to present
     @todo: rewrite
+    @returns this
+    @summary [chainable, covered]
     ###
     waitFor: (ele, cb) ->
         @info "waiting for element '#{ele}' to appear"
 
-        @._setContext @client.wait =>
+        @._setContext(@client.wait =>
             @exists(ele).then (e) ->
                 e       
         , @option 'timeout'
@@ -183,11 +217,19 @@ DOMActions =
             @._adoptPromise @._reject "called #waitFor for element, failed to locate one"
             @warn "called #waitFor for element, failed to locate one"
             cb false if cb?
+        )
         
-
+    ###
+    @returns this
+    @summary [chainable]
+    ###
     title: (cb) ->
         @._wrapPromise @client.getTitle()
 
+    ###
+    @returns this
+    @summary [chainable]
+    ###
     _find: (ele, _by) ->
         @debug "searching for element '#{ele}'"
         _by = if _by? then _by(ele) else @._by(ele)
@@ -200,6 +242,9 @@ DOMActions =
                     @._adoptPromise @._reject "Element '#{ele}' not found"
         )
 
+    ###
+    @returns webdriver.By
+    ###
     _by: (sel) ->
         @.debug @Matcher.detect(sel)(@._cleanSelector(sel))
         @Matcher.detect(sel)(@_cleanSelector(sel))
@@ -215,6 +260,10 @@ DOMActions =
     #         @._getContext()    
 
     # @todo: rewrite, possible memory leak
+    ###
+    @returns this|this._context
+    @summary [chainable]
+    ###
     _resolveElement: (ele) ->
         @debug "resolving element '#{ele}'"
         unless ele?
@@ -229,6 +278,9 @@ DOMActions =
 
         ele
 
+    ###
+    @returns Promise
+    ###
     _resolveBool: (ele, fn) ->
         _defer = @.defer()
         @._resolveElement(ele).then (e) =>

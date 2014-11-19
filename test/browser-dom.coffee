@@ -11,6 +11,7 @@ describe 'SWS Browser', ->
         return
     beforeEach ->
         @browser.start()
+        @browser.walk 'http://google.com'
     afterEach ->
         @browser.client.close()
         @browser.reset()
@@ -21,7 +22,6 @@ describe 'SWS Browser', ->
     describe 'DOM actions', ->
         describe 'Elements find methods', ->
             it 'should fulfill promise for designated element', ->
-                @browser.walk 'http://google.com'
                 @browser
                     .find '[name=q]'
                     .should.be.fulfilled
@@ -32,7 +32,6 @@ describe 'SWS Browser', ->
                     .should.not.be.rejected
 
             it 'should reject global promise when searching for not existing element', ->
-                @browser.walk 'http://google.com'
                 @browser
                     .find '#asda'
                 @browser.should.be.rejected
@@ -40,7 +39,6 @@ describe 'SWS Browser', ->
             before ->
                 @searchText = ''
             it 'should open Google main page and search for generated text (i.e. input text and click search button)', ->
-                @browser.walk 'http://google.com'
                 @browser.findByName 'q'
                 @browser.fill 'test'
                 @browser.findByName 'btnG'
@@ -49,7 +47,6 @@ describe 'SWS Browser', ->
 
             it 'should work with chainable methods', ->
                 @browser
-                    .walk 'http://google.com'
                     .findByName 'q'
                     .fill 'test'
                     .findByName 'btnG'
@@ -58,7 +55,6 @@ describe 'SWS Browser', ->
 
             it 'should clear input text', ->
                 @browser
-                    .walk 'http://google.com'
                     .findByName 'q'
                     .fill 'test'
                     .clear()
@@ -66,13 +62,28 @@ describe 'SWS Browser', ->
                 @browser.should.not.be.rejected
 
             it 'should validate state of global promise', ->
-                @browser.walk 'http://google.com'
                 @browser.title().should.eventually.equal 'Google'
 
             it 'should play nice with visible state of element', ->
-                @browser.walk 'http://google.com'
                 @browser.findByName('btnK').visible().should.eventually.be.true
                 @browser.findByName('q').fill 'test'
                 @browser.findByName('btnK').visible().should.eventually.be.false
+
+            it 'should retrieve ID of the element', ->
+                @browser.findByName('q').id().should.eventually.equal 'gbqfq'
+
+            it 'should retrieve text of the element', ->
+                @browser.findById('gbqfsa').text().should.eventually.equal 'Поиск в Google'
+
+            it 'should retrieve attribute value of the element', ->
+                @browser.attr('[name=btnK]', 'aria-label').should.eventually.equal 'Поиск в Google'
+                @browser.findByName('btnK').attr('aria-label').should.eventually.equal 'Поиск в Google'
+
+            it 'should check the existense of element', ->
+                @browser.exists('[name=btnK]').should.eventually.be.true
+
+            it 'should wait until element will appear', ->
+                @browser.waitFor('[name=btnK]').should.not.be.rejected
+
 
                 
