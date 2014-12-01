@@ -52,7 +52,7 @@ class Browser extends util.Modules.Logger
     ###
     @var object Browser.Errors Collection of exception classes, provided by `common-errors` package
     ###
-    @Errors = $err
+    Errors = $err
 
     ###
     @param string this.browser Name of browser that will be used

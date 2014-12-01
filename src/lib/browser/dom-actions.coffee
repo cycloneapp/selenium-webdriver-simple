@@ -1,3 +1,5 @@
+$err = require 'common-errors'
+
 DOMActions =
     ElementMethods: [
         'clear',
@@ -23,13 +25,24 @@ DOMActions =
         'submit' 
     ]
 
+    _notImplementedMethods: ->
+        [
+            'findAll'
+            'button'
+            'form'
+            'css'
+            'cssValue'
+            'innerHtml'
+            'outerHtml'
+        ]
+
     find: (sel) ->
         @_find sel
         #@
 
     # @todo: implement
     findAll: (sel) ->
-        throw (new $err.NotImplemented 'method not implemented')
+        throw (new $err.NotImplementedError 'method not implemented')
 
     findByName: (name) ->
         @_find "[name=#{name}]", @Matcher.by('css')
@@ -48,15 +61,15 @@ DOMActions =
 
     # @todo: implement
     button: (sel) ->
-        throw (new $err.NotImplemented 'method not implemented')
+        throw (new $err.NotImplementedError 'method not implemented')
 
     # @todo: implement
     form: (sel) ->
-        throw (new $err.NotImplemented 'method not implemented')
+        throw (new $err.NotImplementedError 'method not implemented')
     
     # @todo: implement
     css: (query) ->
-        throw (new $err.NotImplemented 'method not implemented')
+        throw (new $err.NotImplementedError 'method not implemented')
 
     submit: (ele) ->
         @_resolveElement(ele).submit()
@@ -65,12 +78,13 @@ DOMActions =
         @.attr ele, 'id'
     
     # @todo: implement
-    innerHTML: (ele) ->
+    innerHtml: (ele) ->
+        throw (new $err.NotImplementedError 'method not implemented')
 
     # @todo: implement
-    outerHTML: (ele) ->
+    outerHtml: (ele) ->
+        throw (new $err.NotImplementedError 'method not implemented')
 
-    # @todo: implement
     text: (ele) ->
         _defer = @.defer()
         @_resolveElement(ele).then (e) =>
@@ -123,6 +137,7 @@ DOMActions =
 
     # @todo: implement
     cssValue: (ele, option) ->
+        throw (new $err.NotImplementedError 'method not implemented')
 
     ###
     @description Clears the input text from element

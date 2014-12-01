@@ -150,7 +150,7 @@ task 'testrun', 'Ensure Selenium server can start', (opts) ->
     , 5000
 
 task 'test', 'Run tests', ->
-    _execWithExit './node_modules/.bin/mocha'
+    _execWithExit './node_modules/.bin/mocha',  ['test/internal.coffee', 'test/basic.coffee']
 
 task 't', 't', ->
     util.debug 'test', 'app'
