@@ -247,7 +247,8 @@ exports.Modules.Logger = class Logger extends Configuration
             _warn msg, @logPrefix()
 
     debug: (msg) ->
-        _debug msg, @logPrefix()
+        if @logCondition()
+            _debug msg, @logPrefix()
 
 
 exports.Modules.Deferrable =

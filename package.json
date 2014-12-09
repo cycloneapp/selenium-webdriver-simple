@@ -3,7 +3,7 @@
   "description": "Wrapper for Selenium WebDriver that makes life easier",
   "author": "CycloneApp Team & friends",
   "main": "index.js",
-  "version": "0.0.3-alpha+pl22",
+  "version": "0.0.3-alpha+pl23",
   "license": "MIT",
   "repository": {
     "type": "git",
